@@ -1,12 +1,12 @@
 module pc_reg(
-    input wire    clk,
-    input wire    rst,
-    output reg    pc,
-    output reg    ce
+    input wire                  clk,
+    input wire                  rst,
+    output reg[`InstAddrBus]    pc,
+    output reg                  ce
 );
 
     always @ (posedge clk) begin
-        if (rst == 'stEnable) begin
+        if (rst == 'RstEnable) begin
             ce <= 'ChipDisable;
         end else begin
             ce <= 'ChipEnable;
@@ -14,7 +14,7 @@ module pc_reg(
     end
 
     always @ (posedge clk) begin
-        if (ce == 'CHipDisable) begin
+        if (ce == 'ChipDisable) begin
             pc <= 32'h00000000;
         end else begin
             pc <= pc + 4'h4;
