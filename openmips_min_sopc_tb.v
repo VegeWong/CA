@@ -22,76 +22,37 @@
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-// Module:  regfile
-// File:    regfile.v
+// Module:  openmips_min_sopc_tb
+// File:    openmips_min_sopc_tb.v
 // Author:  Lei Silei
 // E-mail:  leishangwen@163.com
-// Description: 通用寄存器，共32个
+// Description: openmips_min_sopc的testbench
 // Revision: 1.0
 //////////////////////////////////////////////////////////////////////
 
 `include "defines.v"
+`timescale 1ns/1ps
 
-module regfile(
+module openmips_min_sopc_tb();
 
-	input	wire										clk,
-	input wire										rst,
-	
-	//写端口
-	input wire										we,
-	input wire[`RegAddrBus]				waddr,
-	input wire[`RegBus]						wdata,
-	
-	//读端口1
-	input wire										re1,
-	input wire[`RegAddrBus]			  raddr1,
-	output reg[`RegBus]           rdata1,
-	
-	//读端口2
-	input wire										re2,
-	input wire[`RegAddrBus]			  raddr2,
-	output reg[`RegBus]           rdata2
-	
-);
-
-	reg[`RegBus]  regs[0:`RegNum-1];
-
-	always @ (posedge clk) begin
-		if (rst == `RstDisable) begin
-			if((we == `WriteEnable) && (waddr != `RegNumLog2'h0)) begin
-				regs[waddr] <= wdata;
-			end
-		end
-	end
-	
-	always @ (*) begin
-		if(rst == `RstEnable) begin
-			  rdata1 <= `ZeroWord;
-	  end else if(raddr1 == `RegNumLog2'h0) begin
-	  		rdata1 <= `ZeroWord;
-	  end else if((raddr1 == waddr) && (we == `WriteEnable) 
-	  	            && (re1 == `ReadEnable)) begin
-	  	  rdata1 <= wdata;
-	  end else if(re1 == `ReadEnable) begin
-	      rdata1 <= regs[raddr1];
-	  end else begin
-	      rdata1 <= `ZeroWord;
-	  end
-	end
-
-	always @ (*) begin
-		if(rst == `RstEnable) begin
-			  rdata2 <= `ZeroWord;
-	  end else if(raddr2 == `RegNumLog2'h0) begin
-	  		rdata2 <= `ZeroWord;
-	  end else if((raddr2 == waddr) && (we == `WriteEnable) 
-	  	            && (re2 == `ReadEnable)) begin
-	  	  rdata2 <= wdata;
-	  end else if(re2 == `ReadEnable) begin
-	      rdata2 <= regs[raddr2];
-	  end else begin
-	      rdata2 <= `ZeroWord;
-	  end
-	end
+  reg     CLOCK_50;
+  reg     rst;
+  
+       
+  initial begin
+    CLOCK_50 = 1'b0;
+    forever #10 CLOCK_50 = ~CLOCK_50;
+  end
+      
+  initial begin
+    rst = `RstEnable;
+    #195 rst= `RstDisable;
+    #1000 $stop;
+  end
+       
+  openmips_min_sopc openmips_min_sopc0(
+		.clk(CLOCK_50),
+		.rst(rst)	
+	);
 
 endmodule

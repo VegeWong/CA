@@ -22,76 +22,56 @@
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-// Module:  regfile
-// File:    regfile.v
+// Module:  id_ex
+// File:    id_ex.v
 // Author:  Lei Silei
 // E-mail:  leishangwen@163.com
-// Description: 通用寄存器，共32个
+// Description: ID/EX阶段的寄存器
 // Revision: 1.0
 //////////////////////////////////////////////////////////////////////
 
 `include "defines.v"
 
-module regfile(
+module id_ex(
 
 	input	wire										clk,
 	input wire										rst,
+
 	
-	//写端口
-	input wire										we,
-	input wire[`RegAddrBus]				waddr,
-	input wire[`RegBus]						wdata,
+	//从译码阶段传递的信息
+	input wire[`AluOpBus]         id_aluop,
+	input wire[`AluSelBus]        id_alusel,
+	input wire[`RegBus]           id_reg1,
+	input wire[`RegBus]           id_reg2,
+	input wire[`RegAddrBus]       id_wd,
+	input wire                    id_wreg,	
 	
-	//读端口1
-	input wire										re1,
-	input wire[`RegAddrBus]			  raddr1,
-	output reg[`RegBus]           rdata1,
-	
-	//读端口2
-	input wire										re2,
-	input wire[`RegAddrBus]			  raddr2,
-	output reg[`RegBus]           rdata2
+	//传递到执行阶段的信息
+	output reg[`AluOpBus]         ex_aluop,
+	output reg[`AluSelBus]        ex_alusel,
+	output reg[`RegBus]           ex_reg1,
+	output reg[`RegBus]           ex_reg2,
+	output reg[`RegAddrBus]       ex_wd,
+	output reg                    ex_wreg
 	
 );
 
-	reg[`RegBus]  regs[0:`RegNum-1];
-
 	always @ (posedge clk) begin
-		if (rst == `RstDisable) begin
-			if((we == `WriteEnable) && (waddr != `RegNumLog2'h0)) begin
-				regs[waddr] <= wdata;
-			end
+		if (rst == `RstEnable) begin
+			ex_aluop <= `EXE_NOP_OP;
+			ex_alusel <= `EXE_RES_NOP;
+			ex_reg1 <= `ZeroWord;
+			ex_reg2 <= `ZeroWord;
+			ex_wd <= `NOPRegAddr;
+			ex_wreg <= `WriteDisable;
+		end else begin		
+			ex_aluop <= id_aluop;
+			ex_alusel <= id_alusel;
+			ex_reg1 <= id_reg1;
+			ex_reg2 <= id_reg2;
+			ex_wd <= id_wd;
+			ex_wreg <= id_wreg;		
 		end
 	end
 	
-	always @ (*) begin
-		if(rst == `RstEnable) begin
-			  rdata1 <= `ZeroWord;
-	  end else if(raddr1 == `RegNumLog2'h0) begin
-	  		rdata1 <= `ZeroWord;
-	  end else if((raddr1 == waddr) && (we == `WriteEnable) 
-	  	            && (re1 == `ReadEnable)) begin
-	  	  rdata1 <= wdata;
-	  end else if(re1 == `ReadEnable) begin
-	      rdata1 <= regs[raddr1];
-	  end else begin
-	      rdata1 <= `ZeroWord;
-	  end
-	end
-
-	always @ (*) begin
-		if(rst == `RstEnable) begin
-			  rdata2 <= `ZeroWord;
-	  end else if(raddr2 == `RegNumLog2'h0) begin
-	  		rdata2 <= `ZeroWord;
-	  end else if((raddr2 == waddr) && (we == `WriteEnable) 
-	  	            && (re2 == `ReadEnable)) begin
-	  	  rdata2 <= wdata;
-	  end else if(re2 == `ReadEnable) begin
-	      rdata2 <= regs[raddr2];
-	  end else begin
-	      rdata2 <= `ZeroWord;
-	  end
-	end
-
 endmodule

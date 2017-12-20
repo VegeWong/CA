@@ -22,76 +22,49 @@
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////
-// Module:  regfile
-// File:    regfile.v
+// Module:  openmips_min_sopc
+// File:    openmips_min_sopc.v
 // Author:  Lei Silei
 // E-mail:  leishangwen@163.com
-// Description: 通用寄存器，共32个
+// Description: 基于OpenMIPS处理器的一个简单SOPC，用于验证具备了
+//              wishbone总线接口的openmips，该SOPC包含openmips、
+//              wb_conmax、GPIO controller、flash controller，uart 
+//              controller，以及用来仿真flash的模块flashmem，在其中
+//              存储指令，用来仿真外部ram的模块datamem，在其中存储
+//              数据，并且具有wishbone总线接口    
 // Revision: 1.0
 //////////////////////////////////////////////////////////////////////
 
 `include "defines.v"
 
-module regfile(
+module openmips_min_sopc(
 
 	input	wire										clk,
-	input wire										rst,
-	
-	//写端口
-	input wire										we,
-	input wire[`RegAddrBus]				waddr,
-	input wire[`RegBus]						wdata,
-	
-	//读端口1
-	input wire										re1,
-	input wire[`RegAddrBus]			  raddr1,
-	output reg[`RegBus]           rdata1,
-	
-	//读端口2
-	input wire										re2,
-	input wire[`RegAddrBus]			  raddr2,
-	output reg[`RegBus]           rdata2
+	input wire										rst
 	
 );
 
-	reg[`RegBus]  regs[0:`RegNum-1];
+  //连接指令存储器
+  wire[`InstAddrBus] inst_addr;
+  wire[`InstBus] inst;
+  wire rom_ce;
+ 
 
-	always @ (posedge clk) begin
-		if (rst == `RstDisable) begin
-			if((we == `WriteEnable) && (waddr != `RegNumLog2'h0)) begin
-				regs[waddr] <= wdata;
-			end
-		end
-	end
+ openmips openmips0(
+		.clk(clk),
+		.rst(rst),
 	
-	always @ (*) begin
-		if(rst == `RstEnable) begin
-			  rdata1 <= `ZeroWord;
-	  end else if(raddr1 == `RegNumLog2'h0) begin
-	  		rdata1 <= `ZeroWord;
-	  end else if((raddr1 == waddr) && (we == `WriteEnable) 
-	  	            && (re1 == `ReadEnable)) begin
-	  	  rdata1 <= wdata;
-	  end else if(re1 == `ReadEnable) begin
-	      rdata1 <= regs[raddr1];
-	  end else begin
-	      rdata1 <= `ZeroWord;
-	  end
-	end
+		.rom_addr_o(inst_addr),
+		.rom_data_i(inst),
+		.rom_ce_o(rom_ce)
+	
+	);
+	
+	inst_rom inst_rom0(
+		.addr(inst_addr),
+		.inst(inst),
+		.ce(rom_ce)	
+	);
 
-	always @ (*) begin
-		if(rst == `RstEnable) begin
-			  rdata2 <= `ZeroWord;
-	  end else if(raddr2 == `RegNumLog2'h0) begin
-	  		rdata2 <= `ZeroWord;
-	  end else if((raddr2 == waddr) && (we == `WriteEnable) 
-	  	            && (re2 == `ReadEnable)) begin
-	  	  rdata2 <= wdata;
-	  end else if(re2 == `ReadEnable) begin
-	      rdata2 <= regs[raddr2];
-	  end else begin
-	      rdata2 <= `ZeroWord;
-	  end
-	end
 
 endmodule
