@@ -1,44 +1,14 @@
-//////////////////////////////////////////////////////////////////////
-////                                                              ////
-//// Copyright (C) 2014 leishangwen@163.com                       ////
-////                                                              ////
-//// This source file may be used and distributed without         ////
-//// restriction provided that this copyright statement is not    ////
-//// removed from the file and that any derivative work contains  ////
-//// the original copyright notice and the associated disclaimer. ////
-////                                                              ////
-//// This source file is free software; you can redistribute it   ////
-//// and/or modify it under the terms of the GNU Lesser General   ////
-//// Public License as published by the Free Software Foundation; ////
-//// either version 2.1 of the License, or (at your option) any   ////
-//// later version.                                               ////
-////                                                              ////
-//// This source is distributed in the hope that it will be       ////
-//// useful, but WITHOUT ANY WARRANTY; without even the implied   ////
-//// warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR      ////
-//// PURPOSE.  See the GNU Lesser General Public License for more ////
-//// details.                                                     ////
-////                                                              ////
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-// Module:  openmips
-// File:    openmips.v
-// Author:  Lei Silei
-// E-mail:  leishangwen@163.com
-// Description: OpenMIPS处理器的顶层文件
-// Revision: 1.0
-//////////////////////////////////////////////////////////////////////
-
 `include "defines.v"
 
 module openmips(
 
-	input	wire										clk,
-	input wire										rst,
-	
+	input wire					   clk,
+	input wire					   rst,
+	input wire[`OpcodeBus]         opcode_i,
+	input wire[`Func3Bus]          func3_i,
+	input wire[`Func7Bus]          func7_i,
  
-	input wire[`RegBus]           rom_data_i,
+	input wire[`RegBus]            rom_data_i,
 	output wire[`RegBus]           rom_addr_o,
 	output wire                    rom_ce_o
 	
@@ -49,20 +19,22 @@ module openmips(
 	wire[`InstBus] id_inst_i;
 	
 	//连接译码阶段ID模块的输出与ID/EX模块的输入
-	wire[`AluOpBus] id_aluop_o;
-	wire[`AluSelBus] id_alusel_o;
+	wire[`OpcodeBus] id_opcode_o;
+	wire[`Func3Bus] id_func3_o;
+	wire[`Func7Bus] id_func7_o;
 	wire[`RegBus] id_reg1_o;
 	wire[`RegBus] id_reg2_o;
 	wire id_wreg_o;
 	wire[`RegAddrBus] id_wd_o;
 	
 	//连接ID/EX模块的输出与执行阶段EX模块的输入
-	wire[`AluOpBus] ex_aluop_i;
-	wire[`AluSelBus] ex_alusel_i;
-	wire[`RegBus] ex_reg1_i;
-	wire[`RegBus] ex_reg2_i;
-	wire ex_wreg_i;
-	wire[`RegAddrBus] ex_wd_i;
+	wire[`OpcodeBus] ex_opcode_i,
+	wire[`Func3Bus] ex_func3_i,
+	wire[`Func7Bus] ex_func7_i,
+	wire[`RegBus] ex_reg1_i,
+	wire[`RegBus] ex_reg2_i,
+	wire[`RegAddrBus] ex_wd_i,
+	wire ex_wreg_i,
 	
 	//连接执行阶段EX模块的输出与EX/MEM模块的输入
 	wire ex_wreg_o;
@@ -85,12 +57,12 @@ module openmips(
 	wire[`RegBus] wb_wdata_i;
 	
 	//连接译码阶段ID模块与通用寄存器Regfile模块
-  wire reg1_read;
-  wire reg2_read;
-  wire[`RegBus] reg1_data;
-  wire[`RegBus] reg2_data;
-  wire[`RegAddrBus] reg1_addr;
-  wire[`RegAddrBus] reg2_addr;
+  	wire reg1_read;
+  	wire reg2_read;
+  	wire[`RegBus] reg1_data;
+  	wire[`RegBus] reg2_data;
+  	wire[`RegAddrBus] reg1_addr;
+  	wire[`RegAddrBus] reg2_addr;
   
   //pc_reg例化
 	pc_reg pc_reg0(
@@ -130,8 +102,9 @@ module openmips(
 		.reg2_addr_o(reg2_addr), 
 	  
 		//送到ID/EX模块的信息
-		.aluop_o(id_aluop_o),
-		.alusel_o(id_alusel_o),
+		.opcode_o(id_opcode_o),
+		.func3_o(id_func3_o),
+		.func7_o(id_func7_o),
 		.reg1_o(id_reg1_o),
 		.reg2_o(id_reg2_o),
 		.wd_o(id_wd_o),
@@ -159,16 +132,18 @@ module openmips(
 		.rst(rst),
 		
 		//从译码阶段ID模块传递的信息
-		.id_aluop(id_aluop_o),
-		.id_alusel(id_alusel_o),
+		.id_opcode(id_opcode_o),
+		.id_func3(id_func3_o),
+		.id_func7(id_func7_o),
 		.id_reg1(id_reg1_o),
 		.id_reg2(id_reg2_o),
 		.id_wd(id_wd_o),
 		.id_wreg(id_wreg_o),
 	
 		//传递到执行阶段EX模块的信息
-		.ex_aluop(ex_aluop_i),
-		.ex_alusel(ex_alusel_i),
+		.ex_opcode(ex_opcode_i),
+		.ex_func3(ex_func3_i),
+		.ex_func7(ex_func7_i),
 		.ex_reg1(ex_reg1_i),
 		.ex_reg2(ex_reg2_i),
 		.ex_wd(ex_wd_i),
@@ -180,8 +155,9 @@ module openmips(
 		.rst(rst),
 	
 		//送到执行阶段EX模块的信息
-		.aluop_i(ex_aluop_i),
-		.alusel_i(ex_alusel_i),
+		.opcode_i(ex_opcode_i),
+		.func3_i(ex_func3_i),
+		.func7_i(ex_func7_i),
 		.reg1_i(ex_reg1_i),
 		.reg2_i(ex_reg2_i),
 		.wd_i(ex_wd_i),
