@@ -281,7 +281,7 @@ module id(
 				*/
 			end	//OP-MISC-MEM inst
 		    default: begin
-				$display("Error: module id: < :: unknown opcode >");
+				$display("Error: module id: < :: unknown opcode -> %h>",inst_i);
 		    end
 		  endcase		  //case op			
 		end       //if
