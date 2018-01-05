@@ -12,7 +12,7 @@ SFLAGSR = -lxt2
 all: riscv.vcd
 
 riscv.vcd: test
-	$(SXX) $(SFLAGSH) test $(SLFAGSR)
+	$(SXX) $(SFLAGSH) test $(SFLAGSR)
 
 test: $(FILES)
 	rm -f test riscv.vcd

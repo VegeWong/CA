@@ -13,6 +13,8 @@ module openmips_min_sopc_tb();
   end
       
   initial begin
+    $dumpfile("riscv.vcd");
+    $dumpvars(0,openmips_min_sopc_tb);
     rst = `RstEnable;
     #195 rst= `RstDisable;
     #1000 $stop;

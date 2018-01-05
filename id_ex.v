@@ -6,7 +6,8 @@ module id_ex(
 	input wire										rst,
 
 	
-	//从译码阶段传递的信息
+	//id
+	input wire[`AluselBus]        id_alusel,
 	input wire[`OpcodeBus]    	  id_opcode,
 	input wire[`Func3Bus]         id_func3,
 	input wire[`Func7Bus]         id_func7,
@@ -15,19 +16,21 @@ module id_ex(
 	input wire[`RegAddrBus]       id_wd,
 	input wire                    id_wreg,	
 	
-	//传递到执行阶段的信息
+	//ex
+	output reg[`AluselBus]    	  ex_alusel,
 	output reg[`OpcodeBus]    	  ex_opcode,
 	output reg[`Func3Bus]         ex_func3,
 	output reg[`Func7Bus]         ex_func7,
 	output reg[`RegBus]           ex_reg1,
 	output reg[`RegBus]           ex_reg2,
 	output reg[`RegAddrBus]       ex_wd,
-	output reg                    ex_wreg,
+	output reg                    ex_wreg
 	
 );
 
 	always @ (posedge clk) begin
 		if (rst == `RstEnable) begin
+			ex_alusel <= `ALU_NOP;
 			ex_opcode <= `EXE_OP_NOP;
 			ex_func3 <= `EXE_FUNC3_NOP;
 			ex_func7 <= `EXE_FUNC7_NOP;
@@ -35,7 +38,8 @@ module id_ex(
 			ex_reg2 <= `ZeroWord;
 			ex_wd <= `NOPRegAddr;
 			ex_wreg <= `WriteDisable;
-		end else begin		
+		end else begin
+			ex_alusel <= id_alusel;
 			ex_opcode <= id_opcode;
 			ex_func3 <= id_func3;
 			ex_func7 <= id_func7;

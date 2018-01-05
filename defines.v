@@ -9,7 +9,7 @@
 `define AluselBus 2:0
 `define OpcodeBus 6:0
 `define Func3Bus 2:0
-`define Func3Bus 6:0
+`define Func7Bus 6:0
 `define InstValid 1'b0
 `define InstInvalid 1'b1
 `define Stop 1'b1

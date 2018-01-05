@@ -4,9 +4,6 @@ module openmips(
 
 	input wire					   clk,
 	input wire					   rst,
-	input wire[`OpcodeBus]         opcode_i,
-	input wire[`Func3Bus]          func3_i,
-	input wire[`Func7Bus]          func7_i,
  
 	input wire[`RegBus]            rom_data_i,
 	output wire[`RegBus]           rom_addr_o,
@@ -30,13 +27,13 @@ module openmips(
 	
 	//连接ID/EX模块的输出与执行阶段EX模块的输入
 	wire[`AluselBus] ex_alusel_i;
-	wire[`OpcodeBus] ex_opcode_i,
-	wire[`Func3Bus] ex_func3_i,
-	wire[`Func7Bus] ex_func7_i,
-	wire[`RegBus] ex_reg1_i,
-	wire[`RegBus] ex_reg2_i,
-	wire[`RegAddrBus] ex_wd_i,
-	wire ex_wreg_i,
+	wire[`OpcodeBus] ex_opcode_i;
+	wire[`Func3Bus] ex_func3_i;
+	wire[`Func7Bus] ex_func7_i;
+	wire[`RegBus] ex_reg1_i;
+	wire[`RegBus] ex_reg2_i;
+	wire[`RegAddrBus] ex_wd_i;
+	wire ex_wreg_i;
 	
 	//连接执行阶段EX模块的输出与EX/MEM模块的输入
 	wire ex_wreg_o;
@@ -170,7 +167,7 @@ module openmips(
 		.rst(rst),
 	
 		//送到执行阶段EX模块的信息
-		.alusel_o(ex_alusel_i),
+		.alusel_i(ex_alusel_i),
 		.opcode_i(ex_opcode_i),
 		.func3_i(ex_func3_i),
 		.func7_i(ex_func7_i),

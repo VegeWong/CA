@@ -2,12 +2,12 @@
 
 module openmips_min_sopc(
 
-	input	wire										clk,
+	input wire										clk,
 	input wire										rst
 	
 );
 
-  //Á¬½ÓÖ¸Áî´æ´¢Æ÷
+  //inst_rom
   wire[`InstAddrBus] inst_addr;
   wire[`InstBus] inst;
   wire rom_ce;
@@ -16,7 +16,7 @@ module openmips_min_sopc(
  openmips openmips0(
 		.clk(clk),
 		.rst(rst),
-	
+		
 		.rom_addr_o(inst_addr),
 		.rom_data_i(inst),
 		.rom_ce_o(rom_ce)

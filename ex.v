@@ -31,15 +31,15 @@ module ex(
 	wire[`RegBus] reg1_i_not;
 	wire[`RegBus] result_sum;
 	
-	assign reg2_i_mux = ((opcode_i == `OP_OP && func3_i == FUNCT3_ADD_SUB && func7_i == FUNCT7_SUB) ||
-						 (opcode_i == `OP_IMM && func3_i == FUNCT3_SLTI) ||
-						 (opcode_i == `OP_OP && func3_i == FUNCT3_SLT)) ?
+	assign reg2_i_mux = ((opcode_i == `OP_OP && func3_i == `FUNCT3_ADD_SUB && func7_i == `FUNCT7_SUB) ||
+						 (opcode_i == `OP_OP_IMM && func3_i == `FUNCT3_SLTI) ||
+						 (opcode_i == `OP_OP && func3_i == `FUNCT3_SLT)) ?
 						 (~reg2_i) + 1 : reg2_i;
 
 	assign result_sum = reg1_i + reg2_i_mux;
 
-	assign reg1_lt_reg2 = ((opcode_i == `OP_IMM && func3_i == FUNCT3_SLTI) ||
-						   (opcode_i == `OP_OP && func3_i == FUNCT3_SLT))?
+	assign reg1_lt_reg2 = ((opcode_i == `OP_OP_IMM && func3_i == `FUNCT3_SLTI) ||
+						   (opcode_i == `OP_OP && func3_i == `FUNCT3_SLT))?
 						   ((reg1_i[31] && !reg2_i[31]) || 
 							 (!reg1_i[31] && !reg2_i[31] && result_sum[31]) ||
 							 (reg1_i[31] && reg2_i[31] && result_sum[31]))
@@ -99,7 +99,7 @@ module ex(
 			shiftres <= `ZeroWord;
 		end else if (alusel_i == `ALU_SHI) begin
 			case (opcode_i)
-				`OP_IMM: begin
+				`OP_OP_IMM: begin
 					case (func3_i)
 						`FUNCT3_SLLI: begin
 							shiftres <= (reg1_i << reg2_i[4:0]);
@@ -110,8 +110,8 @@ module ex(
 									shiftres <= (reg1_i >> reg2_i[4:0]);
 								end
 								`FUNCT7_SRAI: begin
-									shiftres <= {{32{reg1_i[31]}} << (6'd32 - (1'b0, reg2_i[4:0]))
-												| reg1_i >> reg2_i[4:0]};
+									shiftres <= ({32{reg1_i[31]}} << (6'd32 - {1'b0, reg2_i[4:0]}))
+												| reg1_i >> reg2_i[4:0];
 								end
 								default: begin
 									$display("Error: module ex: < shiftres :: OP-IMM :: SRLI_SRAI :: no matching func7 >");
@@ -134,8 +134,8 @@ module ex(
 									shiftres <= (reg1_i >> reg2_i[4:0]);
 								end
 								`FUNCT7_SRA: begin
-									shiftres <= {{32{reg1_i[31]}} << (6'd32 - (1'b0, reg2_i[4:0]))
-												| reg1_i >> reg2_i[4:0]};
+									shiftres <= ({32{reg1_i[31]}} << (6'd32 - {1'b0, reg2_i[4:0]}))
+												| reg1_i >> reg2_i[4:0];
 								end
 								default: begin
 									$display("Error: module ex: < shiftres :: OP-OP :: SRLI_SRAI :: no matching func7 >");
@@ -162,7 +162,7 @@ module ex(
 			arithres <= `ZeroWord;
 		end else if (alusel_i == `ALU_ARI) begin
 			case (opcode_i)
-				`OP_IMM: begin
+				`OP_OP_IMM: begin
 					case (func3_i)
 						`FUNCT3_ADDI: begin
 							arithres <= result_sum;

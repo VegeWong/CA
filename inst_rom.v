@@ -8,7 +8,7 @@ module inst_rom(
 	
 );
 
-	reg[`InstBus]  inst_mem[0:`InstMemNum-1];
+	reg[`InstBus]  inst_mem[0:10];
 
 	initial $readmemh ( "inst_rom.data", inst_mem );
 
