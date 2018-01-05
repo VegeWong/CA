@@ -6,6 +6,7 @@
 `define WriteDisable 1'b0
 `define ReadEnable 1'b1
 `define ReadDisable 1'b0
+`define AluselBus 2:0
 `define OpcodeBus 6:0
 `define Func3Bus 2:0
 `define Func3Bus 6:0
@@ -26,10 +27,11 @@
 `define ChipEnable 1'b1
 `define ChipDisable 1'b0
 
-//**********  Exec related  ***************
-// Code by Evensgn
-// Last Modify: 2017-12-16
-
+//==================       Alu selection type      ================== 
+`define ALU_NOP     3'b000
+`define ALU_LOG     3'b001
+`define ALU_SHI     3'b010
+`define ALU_ARI     3'b011
 //==================  Instruction opcode in RISC-V ================== 
 `define OP_LUI      7'b0110111
 `define OP_AUIPC    7'b0010111
