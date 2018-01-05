@@ -152,23 +152,23 @@ module id(
 						instvalid <= `InstValid;
 					end
 					`FUNCT3_SLLI: begin
-						alusel_o <= ALU_LOG; opcode_o <= op; func3_o <= op2; func7_o <= op3;
+						alusel_o <= ALU_SHI; opcode_o <= op; func3_o <= op2; func7_o <= op3;
 						wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
 		  				reg1_read_o <= 1'b1; reg2_read_o <= 1'b0;	  	
 						imm <= {inst_i[24:20]};
 						instvalid <= `InstValid;
 					end
 					`FUNCT3_SRLI_SRAI: begin
-						case(op3)
+						case (op3)
 							`FUNCT7_SRLI: begin
-								alusel_o <= ALU_LOG; opcode_o <= op; func3_o <= op2; func7_o <= op3;
+								alusel_o <= ALU_SHI; opcode_o <= op; func3_o <= op2; func7_o <= op3;
 								wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
 								reg1_read_o <= 1'b1; reg2_read_o <= 1'b0;	  	
 								imm <= {inst_i[24:20]};
 								instvalid <= `InstValid;
 							end
 							`FUNCT7_SRAI: begin
-								alusel_o <= ALU_ARI; opcode_o <= op; func3_o <= op2; func7_o <= op3;
+								alusel_o <= ALU_SHI; opcode_o <= op; func3_o <= op2; func7_o <= op3;
 								wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
 								reg1_read_o <= 1'b1; reg2_read_o <= 1'b0;	  	
 								imm <= {inst_i[24:20]};
@@ -185,9 +185,9 @@ module id(
 				endcase		//case OP_OP_IMME: op2
 		  	end //OP-OP-IMME inst
 			`OP_OP: begin
-				case(op2)
+				case (op2)
 					`FUNCT3_ADD_SUB: begin
-						case(op3)
+						case (op3)
 							`FUNCT7_ADD: begin
 								alusel_o <= ALU_ARI; opcode_o <= op; func3_o <= op2; func7_o <= op3;
 								wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
@@ -208,7 +208,7 @@ module id(
 						endcase //ADD-SUB func7
 					end
 					`FUNCT3_SLL: begin
-						alusel_o <= ALU_LOG; opcode_o <= op; func3_o <= op2;
+						alusel_o <= ALU_SHI; opcode_o <= op; func3_o <= op2;
 						wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
 		  				reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;	  	
 						imm <= `ZeroWord;
@@ -238,14 +238,14 @@ module id(
 					`FUNCT3_SRL_SRA: begin
 						case(op3)
 							`FUNCT7_SRL: begin
-								alusel_o <= ALU_LOG; opcode_o <= op; func3_o <= op2; func7_o <= op3
+								alusel_o <= ALU_SHI; opcode_o <= op; func3_o <= op2; func7_o <= op3
 								wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
 								reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;	  	
 								imm <= `ZeroWord;
 								instvalid <= `InstValid;
 							end
 							`FUNCT7_SRA: begin
-								alusel_o <= ALU_ARI; opcode_o <= op; func3_o <= op2; func7_o <= op3
+								alusel_o <= ALU_SHI; opcode_o <= op; func3_o <= op2; func7_o <= op3
 								wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
 								reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;	  	
 								imm <= `ZeroWord;
