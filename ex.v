@@ -52,7 +52,7 @@ module ex(
 			logicout <= `ZeroWord;
 		end else if (alusel_i == `ALU_LOG) begin
 			case (opcode_i)
-				`OP_IMM: begin
+				`OP_OP_IMM: begin
 					case (func3_i)
 						`FUNCT3_ORI: begin
 							logicout <= reg1_i | reg2_i;
