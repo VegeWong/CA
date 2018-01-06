@@ -32,7 +32,8 @@ module id(
 	output reg[`RegAddrBus]       wd_o,
 	output reg                    wreg_o,
 	output reg[`RegBus]           link_addr_o,
-	
+	output wire[`RegBus]		  inst_o,
+
 	//pc_reg
 	output reg                    branch_flag_o,
 	output reg[`RegBus]           branch_target_o,
@@ -48,6 +49,7 @@ module id(
 	reg instvalid;
 	wire[`RegBus] result;
 	assign result = reg1_o + (~reg2_o) + 1);
+	assign inst_o = inst_i;
 	always @ (*) begin	
 		if (rst == `RstEnable) begin
 			//regfile
@@ -111,7 +113,7 @@ module id(
 				wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
 				reg1_read_o <= 1'b0; reg2_read_o <= 1'b0;
 				branch_flag_o <= `Branch;	  	
-				branch_target_o <= {{12{inst_i[31:12]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0} + pc_i;
+				branch_target_o <= {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0} + pc_i;
 				link_addr_o <= pc_plus_4;
 				instvalid <= `InstValid;
 			end	//OP-JAL inst
@@ -120,7 +122,7 @@ module id(
 				wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
 				reg1_read_o <= 1'b1; reg2_read_o <= 1'b0;
 				branch_flag_o <= `Branch;	  	
-				branch_target_o <= ({{12{inst_i[31:12]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0} + reg1_o) & {31'b1,1'b0};
+				branch_target_o <= ({{21{inst_i[31]}}, inst_i[30:20]} + reg1_o) & {31'b1,1'b0};
 				link_addr_o <= pc_plus_4;
 				instvalid <= `InstValid;
 			end	//OP-JALR inst
@@ -191,19 +193,71 @@ module id(
 						instvalid <= `InstValid;
 					end
 					default: begin
-						$display("Error: module id: < OP-BRANCH :: unknown func3 -> %h >",inst_i);
+						
 					end
 				endcase //op2
 			end	//OP-BRANCH inst
 			`OP_LOAD: begin
-				/*
-					....
-				*/
+				case (op2)
+					`FUNCT3_LB: begin
+						alusel_o <= `ALU_LAS; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b0;
+						instvalid <= `InstValid;
+					end
+					`FUNCT3_LH: begin
+						alusel_o <= `ALU_LAS; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b0;
+						instvalid <= `InstValid;
+					end
+					`FUNCT3_LW: begin
+						alusel_o <= `ALU_LAS; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b0;
+						instvalid <= `InstValid;
+					end
+					`FUNCT3_LBU: begin
+						alusel_o <= `ALU_LAS; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b0;
+						instvalid <= `InstValid;
+					end
+					`FUNCT3_LHU: begin
+						alusel_o <= `ALU_LAS; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b0;
+						instvalid <= `InstValid;
+					end
+					default: begin
+						$display("Error: module id: < OP-LOAD :: unknown func3 -> %h >",inst_i);
+					end
+				endcase //op2
 			end	//OP-LOAD inst
 			`OP_STORE: begin
-				/*
-					....
-				*/
+				case (op2)
+					`FUNCT3_SB: begin
+						alusel_o <= `ALU_LAS; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteDisable; wd_o <= inst_i[11:7];
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
+						instvalid <= `InstValid;
+					end
+					`FUNCT3_SH: begin
+						alusel_o <= `ALU_LAS; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteDisable; wd_o <= inst_i[11:7];
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
+						instvalid <= `InstValid;
+					end
+					`FUNCT3_SW: begin
+						alusel_o <= `ALU_LAS; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteDisable; wd_o <= inst_i[11:7];
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
+						instvalid <= `InstValid;
+					end
+					default: begin
+						$display("Error: module id: < OP-STORE :: unknown func3 -> %h >",inst_i);
+					end
+				endcase //op2
 			end	//OP-STORE inst
 		  	`OP_OP_IMM: begin
 			  	case(op2)

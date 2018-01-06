@@ -27,6 +27,7 @@
 `define ALU_SHI     3'b010
 `define ALU_ARI     3'b011
 `define ALU_JAB     3'b100
+`define ALU_LAS     3'b101
 //==================  Instruction opcode in RISC-V ================== 
 `define OP_LUI      7'b0110111
 `define OP_AUIPC    7'b0010111

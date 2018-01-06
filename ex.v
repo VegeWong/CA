@@ -14,11 +14,15 @@ module ex(
 	input wire[`RegAddrBus]       wd_i,
 	input wire                    wreg_i,
 	input wire[`RegBus]           link_addr_i,
+	input wire[`RegBus] 		  inst_i,
 	
 	output reg[`RegAddrBus]       wd_o,
 	output reg                    wreg_o,
 	output reg[`RegBus]			  wdata_o,
-
+	output reg[`OpcodeBus]        opcode_o,
+	output reg[`Func3Bus]         func3_o,
+	output reg[`RegBus]           mem_addr_o,
+	output reg[`RegBus] 		  reg2_o,
 	output wire 				  stallreq
 	
 );
@@ -33,6 +37,13 @@ module ex(
 	wire[`RegBus] reg1_i_not;
 	wire[`RegBus] result_sum;
 	
+	assign opcode_o = opcode_i;
+	assign func3_o = func3_i;
+	assign reg2_o = reg2_i;
+	assign mem_addr_o = (opcode_i == `OP_LOAD)? 
+						(reg1_i + {{21{inst_i[31]}}, inst_i[30:20]}) :
+						(reg1_i + {{21{inst_i[31]}}, inst_i[30:25], inst_i[11:7]});
+
 	assign reg2_i_mux = ((opcode_i == `OP_OP && func3_i == `FUNCT3_ADD_SUB && func7_i == `FUNCT7_SUB) ||
 						 (opcode_i == `OP_OP_IMM && func3_i == `FUNCT3_SLTI) ||
 						 (opcode_i == `OP_OP && func3_i == `FUNCT3_SLT)) ?
@@ -229,109 +240,3 @@ module ex(
  	end	
 
 endmodule
-
-
-
-
-
-
-
-	// always @ (*) begin
-	// 	logicout <= `ZeroWord;
-	// 	shiftres <= `ZeroWord;
-	// 	if(rst == `RstEnable) begin
-	// 		logicout <= `ZeroWord;
-	// 		shiftres <= `ZeroWord;
-	// 	end else begin
-	// 		case (opcode_i)
-	// 			`OP_LUI: begin
-	// 				/*
-	// 					....
-	// 				*/
-	// 			end	//OP-LUI inst
-	// 			`OP_AUIPC: begin
-	// 				/*
-	// 					....
-	// 				*/
-	// 			end	//OP-AUIPC inst
-	// 			`OP_JAL: begin
-	// 				/*
-	// 					....
-	// 				*/
-	// 			end	//OP-JAL inst
-	// 			`OP_JALR: begin
-	// 				/*
-	// 					....
-	// 				*/
-	// 			end	//OP-JALR inst
-	// 			`OP_BRANCH: begin
-	// 				/*
-	// 					....
-	// 				*/
-	// 			end	//OP-BRANCH inst
-	// 			`OP_LOAD: begin
-	// 				/*
-	// 					....
-	// 				*/
-	// 			end	//OP-LOAD inst
-	// 			`OP_STORE: begin
-	// 				/*
-	// 					....
-	// 				*/
-	// 			end	//OP-STORE inst
-	// 			`OP_OP_IMM: begin
-	// 				case(func3_i)
-	// 					`FUNCT3_ADDI: begin
-	// 						logice <= 1'b1;
-	// 						shifte <= 1'b0;
-	// 						logicout <= reg1_i + reg2_i;
-	// 						shiftres <= `ZeroWord;
-	// 					end
-	// 					`FUNCT3_SLTI: begin
-	// 						/*
-	// 							.....
-	// 						*/
-	// 					end
-	// 					`FUNCT3_SLTIU: begin
-	// 						/*
-	// 							.....
-	// 						*/
-	// 					end
-	// 					`FUNCT3_ORI: begin
-	// 						logice <= 1'b1;
-	// 						shifte <= 1'b0;
-	// 						logicout <= reg1_i | reg2_i;
-	// 						shiftres <= `ZeroWord;
-	// 					end
-	// 					`FUNCT3_XORI: begin
-	// 						logice <= 1'b1;
-	// 						shifte <= 1'b0;
-	// 						logicout <= reg1_i ^ reg2_i;
-	// 						shiftres <= `ZeroWord;
-	// 					end
-	// 					`FUNCT3_ANDI: begin
-	// 						logice <= 1'b1;
-	// 						shifte <= 1'b0;
-	// 						logicout <= reg1_i & reg2_i;
-	// 						shiftres <= `ZeroWord;
-	// 					end
-	// 					default: begin
-	// 						$display("Error: module ex: < OP_IMM error :: unknown func3 >");
-	// 					end
-	// 				endcase //case OP-IMM->func3
-	// 			end
-	// 			`OP_OP: begin
-
-	// 			end //OP-OP inst
-	// 			`OP_MISC_MEM: begin
-	// 				/*
-	// 					....
-	// 				*/
-	// 			end	//OP-MISC-MEM inst
-	// 			default: begin
-	// 				$display("Error: module ex: < :: unknown opcode >");
-	// 			end
-	// 		endcase //case opcode
-	// 	end    //if
-	// end      //always
-	
