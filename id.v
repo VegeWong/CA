@@ -39,7 +39,7 @@ module id(
 	output reg[`RegBus]           branch_target_o,
 	
 	//ctrl
-	output wire 				  stallreq
+	output reg 			     	  stallreq
 );
 	wire[`RegBus] pc_plus_4 = pc_i + 4;
 	wire[6:0] op  = inst_i[6:0];
@@ -48,7 +48,7 @@ module id(
 	reg[`RegBus]	imm;
 	reg instvalid;
 	wire[`RegBus] result;
-	assign result = reg1_o + (~reg2_o) + 1);
+	assign result = reg1_o + (~reg2_o) + 1;
 	assign inst_o = inst_i;
 	always @ (*) begin	
 		if (rst == `RstEnable) begin

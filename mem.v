@@ -4,7 +4,7 @@ module mem(
 
 	input wire					  rst,
 	
-	//À´×ÔÖ´ÐÐ½×¶ÎµÄÐÅÏ¢	
+	//ï¿½ï¿½ï¿½ï¿½Ö´ï¿½Ð½×¶Îµï¿½ï¿½ï¿½Ï¢	
 	input wire[`RegAddrBus]       wd_i,
 	input wire                    wreg_i,
 	input wire[`RegBus]			  wdata_i,
@@ -13,15 +13,15 @@ module mem(
 	input wire[`RegBus]			  mem_addr_i,
 	input wire[`RegBus]			  reg2_i,
 
-	//À´×ÔÄÚ´æRAMµÄÐÅÏ¢
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½RAMï¿½ï¿½ï¿½ï¿½Ï¢
 	input wire[`RegBus]			  mem_data_i,
 
-	//ËÍµ½»ØÐ´½×¶ÎµÄÐÅÏ¢
+	//ï¿½Íµï¿½ï¿½ï¿½Ð´ï¿½×¶Îµï¿½ï¿½ï¿½Ï¢
 	output reg[`RegAddrBus]       wd_o,
 	output reg                    wreg_o,
 	output reg[`RegBus]			  wdata_o,
 
-	//ËÍµ½ÄÚ´æRAMµÄÐÅÏ¢
+	//ï¿½Íµï¿½ï¿½Ú´ï¿½RAMï¿½ï¿½ï¿½ï¿½Ï¢
 	output reg[`RegBus]           mem_addr_o,
 	output wire                   mem_we_o,
 	output reg[3:0]               mem_sel_o,
@@ -116,7 +116,7 @@ module mem(
 								end
 							endcase
 						end
-						`FUNCT3_LWU: begin
+						`FUNCT3_LBU: begin
 							mem_addr_o <= mem_addr_i;
 							mem_we <= `WriteDisable;
 							mem_ce_o <= `ChipEnable;
@@ -197,7 +197,7 @@ module mem(
 					endcase
 				end
 				default: begin
-					$display("Error: module mem: < :: unknown opcode -> %h >",inst_i);
+					$display("Error: module mem: < :: unknown opcode >");
 				end
 			endcase
 		end    //if

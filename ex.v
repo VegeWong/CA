@@ -19,10 +19,10 @@ module ex(
 	output reg[`RegAddrBus]       wd_o,
 	output reg                    wreg_o,
 	output reg[`RegBus]			  wdata_o,
-	output reg[`OpcodeBus]        opcode_o,
-	output reg[`Func3Bus]         func3_o,
-	output reg[`RegBus]           mem_addr_o,
-	output reg[`RegBus] 		  reg2_o,
+	output wire[`OpcodeBus]       opcode_o,
+	output wire[`Func3Bus]        func3_o,
+	output wire[`RegBus]          mem_addr_o,
+	output wire[`RegBus] 		  reg2_o,
 	output wire 				  stallreq
 	
 );

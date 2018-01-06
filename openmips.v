@@ -258,7 +258,7 @@ module openmips(
 		//送到访存阶段MEM模块的信息
 		.mem_wd(mem_wd_i),
 		.mem_wreg(mem_wreg_i),
-		.mem_wdata(mem_wdata_i)
+		.mem_wdata(mem_wdata_i),
 		.mem_opcode(mem_opcode_i),
 		.mem_func3(mem_func3_i),
 		.mem_mem_addr(mem_mem_addr_i),
