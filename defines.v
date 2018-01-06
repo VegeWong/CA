@@ -12,12 +12,6 @@
 `define Func7Bus 6:0
 `define InstValid 1'b0
 `define InstInvalid 1'b1
-`define Stop 1'b1
-`define NoStop 1'b0
-`define InDelaySlot 1'b1
-`define NotInDelaySlot 1'b0
-`define Branch 1'b1
-`define NotBranch 1'b0
 `define InterruptAssert 1'b1
 `define InterruptNotAssert 1'b0
 `define TrapAssert 1'b1
@@ -32,6 +26,7 @@
 `define ALU_LOG     3'b001
 `define ALU_SHI     3'b010
 `define ALU_ARI     3'b011
+`define ALU_JAB     3'b100
 //==================  Instruction opcode in RISC-V ================== 
 `define OP_LUI      7'b0110111
 `define OP_AUIPC    7'b0010111
@@ -130,3 +125,7 @@
 `define NoStop      1'b0
 `define Stop        1'b1
 `define CtrlBus     5:0
+
+//==================      Branch related     ==================
+`define Branch      1'b1
+`define NotBranch   1'b0

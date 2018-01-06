@@ -24,11 +24,16 @@ module openmips(
 	wire[`RegBus] id_reg2_o;
 	wire id_wreg_o;
 	wire[`RegAddrBus] id_wd_o;
+	wire[`RegBus] id_link_addr_o;
 	
 	//连接Ctrl模块
 	wire stallreq_from_id;	
 	wire stallreq_from_ex;
 	wire[`CtrlBus] stall;
+
+	//连接PC模块
+	wire id_branch_flag_o;
+	wire[`RegBus] id_branch_target_o;
 	
 	//连接ID/EX模块的输出与执行阶段EX模块的输入
 	wire[`AluselBus] ex_alusel_i;
@@ -39,6 +44,7 @@ module openmips(
 	wire[`RegBus] ex_reg2_i;
 	wire[`RegAddrBus] ex_wd_i;
 	wire ex_wreg_i;
+	wire[`RegBus] ex_link_addr_i;
 	
 	//连接执行阶段EX模块的输出与EX/MEM模块的输入
 	wire ex_wreg_o;
@@ -73,17 +79,23 @@ module openmips(
 		.clk(clk),
 		.rst(rst),
 		.pc(pc),
+
+		//ID模块的branch信号
+		.branch_flag_i(id_branch_flag_o),
+		.branch_target_address_i(id_branch_target_o),
+
 		.ce(rom_ce_o),
 		.stall(stall)
 	);
 	
   assign rom_addr_o = pc;
 
-  //IF/ID模块例化
+  	//IF/ID模块例化
 	if_id if_id0(
 		.clk(clk),
 		.rst(rst),
 		.stall(stall),
+		.flush_from_branch(id_branch_flag_o),
 
 		.if_pc(pc),
 		.if_inst(rom_data_i),
@@ -126,11 +138,17 @@ module openmips(
 		.reg2_o(id_reg2_o),
 		.wd_o(id_wd_o),
 		.wreg_o(id_wreg_o),
+		.link_addr_o(id_link_addr_o),
 
+		//送到pc_reg模块的信息
+		.branch_flag_o(id_branch_flag_o),
+		.branch_target_o(id_branch_target_o),
+
+		//送到ctrl模块的信息
 		.stallreq(stallreq_from_id)
 	);
 
-  //通用寄存器Regfile例化
+  	//通用寄存器Regfile例化
 	regfile regfile1(
 		.clk (clk),
 		.rst (rst),
@@ -160,7 +178,8 @@ module openmips(
 		.id_reg2(id_reg2_o),
 		.id_wd(id_wd_o),
 		.id_wreg(id_wreg_o),
-	
+		.id_link_addr(id_link_addr_o)
+
 		//传递到执行阶段EX模块的信息
 		.ex_alusel(ex_alusel_i),
 		.ex_opcode(ex_opcode_i),
@@ -169,7 +188,8 @@ module openmips(
 		.ex_reg1(ex_reg1_i),
 		.ex_reg2(ex_reg2_i),
 		.ex_wd(ex_wd_i),
-		.ex_wreg(ex_wreg_i)
+		.ex_wreg(ex_wreg_i),
+		.ex_link_addr(ex_link_addr_i)
 	);		
 	
 	//EX模块
@@ -185,8 +205,9 @@ module openmips(
 		.reg2_i(ex_reg2_i),
 		.wd_i(ex_wd_i),
 		.wreg_i(ex_wreg_i),
-	  
-	  //EX模块的输出到EX/MEM模块信息
+	  	.link_addr_i(ex_link_addr_i),
+
+	  	//EX模块的输出到EX/MEM模块信息
 		.wd_o(ex_wd_o),
 		.wreg_o(ex_wreg_o),
 		.wdata_o(ex_wdata_o),
@@ -194,8 +215,8 @@ module openmips(
 		.stallreq(stallreq_from_ex)
 	);
 
-  //EX/MEM模块
-  ex_mem ex_mem0(
+  	//EX/MEM模块
+  	ex_mem ex_mem0(
 		.clk(clk),
 		.rst(rst),
 	    .stall(stall),
@@ -214,7 +235,7 @@ module openmips(
 						       	
 	);
 	
-  //MEM模块例化
+  	//MEM模块例化
 	mem mem0(
 		.rst(rst),
 	
@@ -229,7 +250,7 @@ module openmips(
 		.wdata_o(mem_wdata_o)
 	);
 
-  //MEM/WB模块
+ 	 //MEM/WB模块
 	mem_wb mem_wb0(
 		.clk(clk),
 		.rst(rst),

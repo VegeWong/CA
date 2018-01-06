@@ -13,7 +13,7 @@ module ex(
 	input wire[`RegBus]           reg2_i,
 	input wire[`RegAddrBus]       wd_i,
 	input wire                    wreg_i,
-
+	input wire[`RegBus]           link_addr_i,
 	
 	output reg[`RegAddrBus]       wd_o,
 	output reg                    wreg_o,
@@ -54,6 +54,9 @@ module ex(
 			logicout <= `ZeroWord;
 		end else if (alusel_i == `ALU_LOG) begin
 			case (opcode_i)
+				`OP_LUI, `OP_AUIPC: begin
+					logicout <= reg1_i;
+				end //OP_LUI && OP_AUIPC
 				`OP_OP_IMM: begin
 					case (func3_i)
 						`FUNCT3_ORI: begin
@@ -206,7 +209,10 @@ module ex(
  	always @ (*) begin
 		wd_o <= wd_i;	 	 	
 		wreg_o <= wreg_i;
-		case (alusel_i) 
+		case (alusel_i)
+			`ALU_JAB: begin
+				wdata_o <= link_addr_i;
+			end
 			`ALU_LOG: begin
 				wdata_o <= logicout;
 			end

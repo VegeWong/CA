@@ -31,17 +31,23 @@ module id(
 	output reg[`RegBus]           reg2_o,
 	output reg[`RegAddrBus]       wd_o,
 	output reg                    wreg_o,
-
+	output reg[`RegBus]           link_addr_o,
+	
+	//pc_reg
+	output reg                    branch_flag_o,
+	output reg[`RegBus]           branch_target_o,
+	
+	//ctrl
 	output wire 				  stallreq
 );
-
-  wire[6:0] op  = inst_i[6:0];
-  wire[2:0] op2 = inst_i[14:12];
-  wire[6:0] op3 = inst_i[31:25];
-  reg[`RegBus]	imm;
-  reg instvalid;
-  
- 
+	wire[`RegBus] pc_plus_4 = pc_i + 4;
+	wire[6:0] op  = inst_i[6:0];
+	wire[2:0] op2 = inst_i[14:12];
+	wire[6:0] op3 = inst_i[31:25];
+	reg[`RegBus]	imm;
+	reg instvalid;
+	wire[`RegBus] result;
+	assign result = reg1_o + (~reg2_o) + 1);
 	always @ (*) begin	
 		if (rst == `RstEnable) begin
 			//regfile
@@ -57,7 +63,13 @@ module id(
 			func3_o <= `EXE_FUNC3_NOP;
 			wd_o <= `NOPRegAddr;
 			wreg_o <= `WriteDisable;
-			imm <= `ZeroWord;		
+			link_addr_o <= `ZeroWord;
+			imm <= `ZeroWord;
+			//pc_reg
+			branch_flag_o <= `NotBranch;
+			branch_target_o <= `ZeroWord;	
+			//ctrl
+			stallreq <= `NoStop;	
 	  	end else begin
 			//regfile
 			reg1_read_o <= 1'b0;
@@ -72,32 +84,116 @@ module id(
 			func3_o <= `EXE_FUNC3_NOP;
 			wd_o <= inst_i[11:7];
 			wreg_o <= `WriteDisable;
-			imm <= `ZeroWord;			
+			link_addr_o <= `ZeroWord;
+			imm <= `ZeroWord;
+			//pc_reg
+			branch_flag_o <= `NotBranch;
+			branch_target_o <= `ZeroWord;	
+			//ctrl
+			stallreq <= `NoStop;			
 		  case (op)
 		  	`OP_LUI: begin
-				/*
-					....
-				*/
+				alusel_o <= `ALU_LOG; opcode_o <= op;
+				wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
+				reg1_read_o <= 1'b0; reg2_read_o <= 1'b0;	  	
+				imm <= {inst_i[31:12], 12'b0};
+				instvalid <= `InstValid;
 			end	//OP-LUI inst
 			`OP_AUIPC: begin
-				/*
-					....
-				*/
+				alusel_o <= `ALU_LOG; opcode_o <= op;
+				wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
+				reg1_read_o <= 1'b0; reg2_read_o <= 1'b0;	  	
+				imm <= {inst_i[31:12], 12'b0} + pc_i;
+				instvalid <= `InstValid;
 			end	//OP-AUIPC inst
 			`OP_JAL: begin
-				/*
-					....
-				*/
+				alusel_o <= `ALU_JAB; opcode_o <= op;
+				wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
+				reg1_read_o <= 1'b0; reg2_read_o <= 1'b0;
+				branch_flag_o <= `Branch;	  	
+				branch_target_o <= {{12{inst_i[31:12]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0} + pc_i;
+				link_addr_o <= pc_plus_4;
+				instvalid <= `InstValid;
 			end	//OP-JAL inst
 			`OP_JALR: begin
-				/*
-					....
-				*/
+				alusel_o <= `ALU_JAB; opcode_o <= op; func3_o <= op2;
+				wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
+				reg1_read_o <= 1'b1; reg2_read_o <= 1'b0;
+				branch_flag_o <= `Branch;	  	
+				branch_target_o <= ({{12{inst_i[31:12]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0} + reg1_o) & {31'b1,1'b0};
+				link_addr_o <= pc_plus_4;
+				instvalid <= `InstValid;
 			end	//OP-JALR inst
 			`OP_BRANCH: begin
-				/*
-					....
-				*/
+				case (op2)
+					`FUNCT3_BEQ: begin
+						alusel_o <= `ALU_JAB; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteDisable;
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
+						if (reg1_o == reg2_o) begin
+							branch_flag_o <= `Branch;	  	
+							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+						end
+						instvalid <= `InstValid;
+					end
+					`FUNCT3_BNE: begin
+						alusel_o <= `ALU_JAB; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteDisable;
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
+						if (reg1_o != reg2_o) begin
+							branch_flag_o <= `Branch;	  	
+							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+						end
+						instvalid <= `InstValid;
+					end
+					`FUNCT3_BLT: begin
+						alusel_o <= `ALU_JAB; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteDisable;
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
+						if ((reg1_o[31] && !reg2_o[31]) || 
+							 (!reg1_o[31] && !reg2_o[31] && result[31]) ||
+							 (reg1_o[31] && reg2_o[31] && result[31])) begin
+							branch_flag_o <= `Branch;	  	
+							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+						end
+						instvalid <= `InstValid;
+					end
+					`FUNCT3_BGE: begin
+						alusel_o <= `ALU_JAB; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteDisable;
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
+						if ((!reg1_o[31] && reg2_o[31]) || 
+							 (!reg1_o[31] && !reg2_o[31] && !result[31]) ||
+							 (reg1_o[31] && reg2_o[31] && !result[31])) begin
+							branch_flag_o <= `Branch;	  	
+							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+						end
+						instvalid <= `InstValid;
+					end
+					`FUNCT3_BLTU: begin
+						alusel_o <= `ALU_JAB; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteDisable;
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
+						if (reg1_o < reg2_o) begin
+							branch_flag_o <= `Branch;	  	
+							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+						end
+						instvalid <= `InstValid;
+					end
+					`FUNCT3_BGEU: begin
+						alusel_o <= `ALU_JAB; opcode_o <= op; func3_o <= op2;
+						wreg_o <= `WriteDisable;
+						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
+						if (reg1_o >= reg2_o) begin
+							branch_flag_o <= `Branch;	  	
+							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+						end
+						instvalid <= `InstValid;
+					end
+					default: begin
+						$display("Error: module id: < OP-BRANCH :: unknown func3 -> %h >",inst_i);
+					end
+				endcase //op2
 			end	//OP-BRANCH inst
 			`OP_LOAD: begin
 				/*
@@ -177,12 +273,12 @@ module id(
 								instvalid <= `InstValid;
 							end
 							default: begin
-								$display("Error: module id: < OP-OP-IMM :: FUNCT3-SRLI-SRAI :: unknown func7 >");
+								$display("Error: module id: < OP-OP-IMM :: FUNCT3-SRLI-SRAI :: unknown func7 -> %h >",inst_i);
 							end
 						endcase //FUNCT3_SRLI_SRAI op3
 					end
 					default: begin
-						$display("Error: module id: < OP-OP-IMM :: unknown func3 >");
+						$display("Error: module id: < OP-OP-IMM :: unknown func3 -> %h >",inst_i);
 					end
 				endcase		//case OP_OP_IMME: op2
 		  	end //OP-OP-IMME inst
@@ -205,7 +301,7 @@ module id(
 								instvalid <= `InstValid;
 							end
 							default: begin
-								$display("Error: module id: < OP-O :: ADD_SUB :: unknown func3 >");
+								$display("Error: module id: < OP-O :: ADD_SUB :: unknown func3 -> %h >",inst_i);
 							end
 						endcase //ADD-SUB func7
 					end
@@ -254,7 +350,7 @@ module id(
 								instvalid <= `InstValid;
 							end
 							default: begin
-								$display("Error: module id: < OP-OP :: SRL_SRA :: unknown func7 >");
+								$display("Error: module id: < OP-OP :: SRL_SRA :: unknown func7 -> %h >",inst_i);
 							end
 						endcase//SRL_SRA op3
 					end
@@ -273,7 +369,7 @@ module id(
 						instvalid <= `InstValid;
 					end
 					default: begin
-						$display("Error: module id: < OP-OP :: unknown func3 >");
+						$display("Error: module id: < OP-OP :: unknown func3 -> %h >",inst_i);
 					end
 				endcase //OP-OP op2
 			end	//OP-OP inst
@@ -283,7 +379,7 @@ module id(
 				*/
 			end	//OP-MISC-MEM inst
 		    default: begin
-				$display("Error: module id: < :: unknown opcode -> %h>",inst_i);
+				$display("Error: module id: < :: unknown opcode -> %h >",inst_i);
 		    end
 		  endcase		  //case op			
 		end       //if
