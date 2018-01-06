@@ -17,7 +17,9 @@ module ex(
 	
 	output reg[`RegAddrBus]       wd_o,
 	output reg                    wreg_o,
-	output reg[`RegBus]			  wdata_o
+	output reg[`RegBus]			  wdata_o,
+
+	output wire 				  stallreq
 	
 );
 

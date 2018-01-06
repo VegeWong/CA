@@ -25,6 +25,11 @@ module openmips(
 	wire id_wreg_o;
 	wire[`RegAddrBus] id_wd_o;
 	
+	//连接Ctrl模块
+	wire stallreq_from_id;	
+	wire stallreq_from_ex;
+	wire[`CtrlBus] stall;
+	
 	//连接ID/EX模块的输出与执行阶段EX模块的输入
 	wire[`AluselBus] ex_alusel_i;
 	wire[`OpcodeBus] ex_opcode_i;
@@ -68,8 +73,8 @@ module openmips(
 		.clk(clk),
 		.rst(rst),
 		.pc(pc),
-		.ce(rom_ce_o)	
-			
+		.ce(rom_ce_o),
+		.stall(stall)
 	);
 	
   assign rom_addr_o = pc;
@@ -78,10 +83,12 @@ module openmips(
 	if_id if_id0(
 		.clk(clk),
 		.rst(rst),
+		.stall(stall),
+
 		.if_pc(pc),
 		.if_inst(rom_data_i),
 		.id_pc(id_pc_i),
-		.id_inst(id_inst_i)      	
+		.id_inst(id_inst_i)	
 	);
 	
 	//译码阶段ID模块
@@ -118,7 +125,9 @@ module openmips(
 		.reg1_o(id_reg1_o),
 		.reg2_o(id_reg2_o),
 		.wd_o(id_wd_o),
-		.wreg_o(id_wreg_o)
+		.wreg_o(id_wreg_o),
+
+		.stallreq(stallreq_from_id)
 	);
 
   //通用寄存器Regfile例化
@@ -140,7 +149,8 @@ module openmips(
 	id_ex id_ex0(
 		.clk(clk),
 		.rst(rst),
-		
+		.stall(stall),
+
 		//从译码阶段ID模块传递的信息
 		.id_alusel(id_alusel_o),
 		.id_opcode(id_opcode_o),
@@ -179,15 +189,17 @@ module openmips(
 	  //EX模块的输出到EX/MEM模块信息
 		.wd_o(ex_wd_o),
 		.wreg_o(ex_wreg_o),
-		.wdata_o(ex_wdata_o)
+		.wdata_o(ex_wdata_o),
 		
+		.stallreq(stallreq_from_ex)
 	);
 
   //EX/MEM模块
   ex_mem ex_mem0(
 		.clk(clk),
 		.rst(rst),
-	  
+	    .stall(stall),
+
 		//来自执行阶段EX模块的信息	
 		.ex_wd(ex_wd_o),
 		.ex_wreg(ex_wreg_o),
@@ -221,6 +233,7 @@ module openmips(
 	mem_wb mem_wb0(
 		.clk(clk),
 		.rst(rst),
+		.stall(stall),
 
 		//来自访存阶段MEM模块的信息	
 		.mem_wd(mem_wd_o),

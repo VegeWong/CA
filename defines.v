@@ -125,3 +125,8 @@
 `define RegNum 32
 `define RegNumLog2 5
 `define NOPRegAddr 5'b00000
+
+//==================       Ctrl related      ================== 
+`define NoStop      1'b0
+`define Stop        1'b1
+`define CtrlBus     5:0
