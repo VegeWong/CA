@@ -47,7 +47,7 @@ module openmips(
 	wire ex_wreg_i;
 	wire[`RegBus] ex_link_addr_i;
 	wire[`RegBus] ex_inst_i;
-
+	wire ex_branch_flag_i;
 	//连接执行阶段EX模块的输出与EX/MEM模块的输入
 	wire ex_wreg_o;
 	wire[`RegAddrBus] ex_wd_o;
@@ -56,7 +56,7 @@ module openmips(
 	wire[`Func3Bus] ex_func3_o;
 	wire[`RegBus] ex_mem_addr_o;
 	wire[`RegBus] ex_reg2_o;
-
+	wire ex_branch_flag_o;
 	//连接EX/MEM模块的输出与访存阶段MEM模块的输入
 	wire mem_wreg_i;
 	wire[`RegAddrBus] mem_wd_i;
@@ -125,7 +125,6 @@ module openmips(
 		.rst(rst),
 		.pc_i(id_pc_i),
 		.inst_i(id_inst_i),
-		.ie(id_ie),
 
 		.reg1_data_i(reg1_data),
 		.reg2_data_i(reg2_data),
@@ -134,6 +133,9 @@ module openmips(
 		.ex_wreg_i(ex_wreg_o),
 		.ex_wdata_i(ex_wdata_o),
 		.ex_wd_i(ex_wd_o),
+		.ex_opcode_i(ex_opcode_o),
+		.ex_func3_i(ex_func3_o),
+		.ex_branch_flag_i(ex_branch_flag_o),
 
 	    //处于访存阶段的指令要写入的目的寄存器信息
 		.mem_wreg_i(mem_wreg_o),
@@ -198,6 +200,7 @@ module openmips(
 		.id_wreg(id_wreg_o),
 		.id_link_addr(id_link_addr_o),
 		.id_inst(id_inst_o),
+		.id_branch_flag(id_branch_flag_o),
 
 		//传递到执行阶段EX模块的信息
 		.ex_alusel(ex_alusel_i),
@@ -210,6 +213,7 @@ module openmips(
 		.ex_wreg(ex_wreg_i),
 		.ex_link_addr(ex_link_addr_i),
 		.ex_inst(ex_inst_i)
+		.ex_branch_flag(ex_branch_flag_i),
 	);		
 	
 	//EX模块
@@ -227,7 +231,9 @@ module openmips(
 		.wreg_i(ex_wreg_i),
 	  	.link_addr_i(ex_link_addr_i),
 		.inst_i(ex_inst_i),
+		.branch_flag_i(ex_branch_flag_i),
 
+		.branch_flag_o(ex_branch_flag_o),
 	  	//EX模块的输出到EX/MEM模块信息
 		.wd_o(ex_wd_o),
 		.wreg_o(ex_wreg_o),

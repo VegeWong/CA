@@ -12,6 +12,9 @@ module id(
 	input wire					  ex_wreg_i,
 	input wire[`RegBus]           ex_wdata_i,
 	input wire[`RegAddrBus]       ex_wd_i,
+	input wire[`OpcodeBus]        ex_opcode_i,
+	input wire					  ex_func3_i,
+	input wire                    ex_branch_flag_i,
 	//input from mem
 	input wire					  mem_wreg_i,
 	input wire[`RegBus]           mem_wdata_i,
@@ -50,8 +53,22 @@ module id(
 	wire[`RegBus] result;
 	assign result = reg1_o + (~reg2_o) + 1;
 	assign inst_o = inst_i;
-	always @ (*) begin
-		//$display("begin decoding %h", inst_i);	
+
+	//BRANCH related stall
+	wire pre_inst_is_branch;
+	assign pre_inst_is_load = (ex_opcode_i == OP_JAL |
+							   ex_opcode_i == OP_JALR
+							   ex_opcode_i == OP_BRANCH)? 1'b1 : 1'b0;
+	//LOAD related stall
+	reg stallreq_for_reg1_loadrelate;
+	reg stallreq_for_reg1_loadrelate;
+	wire pre_inst_is_load;
+
+	//LOAD relationship judgement
+	assign pre_inst_is_load = (ex_opcode_i == OP_LOAD)? 1'b1 : 1'b0;
+
+	//Decoding
+	always @ (*) begin	
 		if (rst == `RstEnable) begin
 			//regfile
 			reg1_read_o <= 1'b0;
@@ -73,7 +90,29 @@ module id(
 			branch_target_o <= `ZeroWord;	
 			//ctrl
 			stallreq <= `NoStop;	
-	  	end else begin
+	  	end else if (pre_inst_is_branch == 1'b1 &&
+		  			 ex_branch_flag_i == 1'b1) begin
+			//regfile
+			reg1_read_o <= 1'b0;
+			reg2_read_o <= 1'b0;
+			reg1_addr_o <= `NOPRegAddr;
+			reg2_addr_o <= `NOPRegAddr;	
+			//exec
+			instvalid <= `InstInvalid;
+			alusel_o <= `ALU_NOP;
+			opcode_o <= `EXE_OP_NOP;
+			func7_o <= `EXE_FUNC7_NOP;
+			func3_o <= `EXE_FUNC3_NOP;
+			wd_o <= `NOPRegAddr;
+			wreg_o <= `WriteDisable;
+			link_addr_o <= `ZeroWord;
+			imm <= `ZeroWord;
+			//pc_reg
+			branch_flag_o <= `NotBranch;
+			branch_target_o <= `ZeroWord;	
+			//ctrl
+			stallreq <= `NoStop;
+		end else begin
 			//regfile
 			reg1_read_o <= 1'b0;
 			reg2_read_o <= 1'b0;
@@ -442,8 +481,12 @@ module id(
 	
 
 	always @ (*) begin
+		stallreq_for_reg1_loadrelate <= `NoStop;
 		if(rst == `RstEnable) begin
 			reg1_o <= `ZeroWord;
+		end else if (pre_inst_is_load == 1'b1 && ex_wd_i == reg1_addr_o
+					&& reg1_read_o == 1'b1) begin
+			stallreq_for_reg1_loadrelate <= `Stop;
 		end else if((reg1_read_o == 1'b1) && (ex_wreg_i == 1'b1)
 					&&(ex_wd_i == reg1_addr_o)) begin
 			reg1_o <= ex_wdata_i;
@@ -460,8 +503,12 @@ module id(
 	end
 	
 	always @ (*) begin
+		stallreq_for_reg2_loadrelate <= `NoStop;
 		if(rst == `RstEnable) begin
 			reg2_o <= `ZeroWord;
+		end else if (pre_inst_is_load == 1'b1 && ex_wd_i == reg2_addr_o
+				&& reg2_read_o == 1'b1) begin
+			stallreq_for_reg2_loadrelate <= `Stop;
 		end else if((reg2_read_o == 1'b1) && (ex_wreg_i == 1'b1)
 					&&(ex_wd_i == reg2_addr_o)) begin
 			reg2_o <= ex_wdata_i;
@@ -477,4 +524,7 @@ module id(
 	  	end
 	end
 
+
+	assign stallreq = stallreq_for_reg1_loadrelate |
+		   stallreq_for_reg2_loadrelate;
 endmodule

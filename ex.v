@@ -3,7 +3,7 @@
 module ex(
 
 	input wire					  rst,
-	
+
 	//送到执行阶段的信息
 	input wire[`AluselBus]        alusel_i,
 	input wire[`OpcodeBus]        opcode_i,
@@ -15,7 +15,11 @@ module ex(
 	input wire                    wreg_i,
 	input wire[`RegBus]           link_addr_i,
 	input wire[`RegBus] 		  inst_i,
-	
+	input wire                    branch_flag_i,
+	//sent back to id
+	output wire                   branch_flag_o,
+
+
 	output reg[`RegAddrBus]       wd_o,
 	output reg                    wreg_o,
 	output reg[`RegBus]			  wdata_o,
@@ -27,6 +31,8 @@ module ex(
 	
 );
 
+	assign branch_flag_o = branch_flag_i;
+	
 	reg[`RegBus] logicout;
 	reg[`RegBus] shiftres;
 	reg[`RegBus] arithres;

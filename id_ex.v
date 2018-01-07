@@ -17,7 +17,7 @@ module id_ex(
 	input wire                    id_wreg,
 	input wire[`RegBus]           id_link_addr,
 	input wire[`RegBus]			  id_inst,
-	
+	input wire                    id_branch_flag,
 	//ex
 	output reg[`AluselBus]    	  ex_alusel,
 	output reg[`OpcodeBus]    	  ex_opcode,
@@ -28,7 +28,8 @@ module id_ex(
 	output reg[`RegAddrBus]       ex_wd,
 	output reg                    ex_wreg,
 	output reg[`RegBus]           ex_link_addr,
-	output reg[`RegBus]			  ex_inst
+	output reg[`RegBus]			  ex_inst,
+	output reg                    ex_branch_flag 
 );
 
 	always @ (posedge clk) begin
@@ -43,6 +44,7 @@ module id_ex(
 			ex_wreg <= `WriteDisable;
 			ex_link_addr <= `ZeroWord;
 			ex_inst <= `ZeroWord;
+			ex_branch_flag <= 1'b0;
 		end else if (stall[2] == `Stop && stall[3] == `NoStop) begin
 			ex_alusel <= `ALU_NOP;
 			ex_opcode <= `EXE_OP_NOP;
@@ -54,6 +56,7 @@ module id_ex(
 			ex_wreg <= `WriteDisable;
 			ex_link_addr <= `ZeroWord;
 			ex_inst <= `ZeroWord;
+			ex_branch_flag <= 1'b0;
 		end else if (stall[2] == `NoStop) begin
 			ex_alusel <= id_alusel;
 			ex_opcode <= id_opcode;
@@ -65,6 +68,7 @@ module id_ex(
 			ex_wreg <= id_wreg;
 			ex_link_addr <= id_link_addr;
 			ex_inst <= id_inst;
+			ex_branch_flag <= id_branch_flag;
 		end
 	end
 	

@@ -4,7 +4,6 @@ module ctrl(
 
 	input wire					 rst,
 
-	input wire                   branch_flag_i,
 	input wire                   stallreq_from_id,
 	input wire                   stallreq_from_ex,
 	output reg[5:0]              stall       
@@ -18,9 +17,7 @@ module ctrl(
 		end else if (stallreq_from_ex == `Stop) begin
 			stall <= 6'b001111;
 		end else if (stallreq_from_id == `Stop) begin
-			stall <= 6'b000111;			
-		end else if (branch_flag_i == `Branch) begin
-			stall <= 6'b010000;
+			stall <= 6'b000111;
 		end else begin
 			stall <= 6'b000000;
 		end    //if
