@@ -212,8 +212,8 @@ module openmips(
 		.ex_wd(ex_wd_i),
 		.ex_wreg(ex_wreg_i),
 		.ex_link_addr(ex_link_addr_i),
-		.ex_inst(ex_inst_i)
-		.ex_branch_flag(ex_branch_flag_i),
+		.ex_inst(ex_inst_i),
+		.ex_branch_flag(ex_branch_flag_i)
 	);		
 	
 	//EX模块

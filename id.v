@@ -13,7 +13,7 @@ module id(
 	input wire[`RegBus]           ex_wdata_i,
 	input wire[`RegAddrBus]       ex_wd_i,
 	input wire[`OpcodeBus]        ex_opcode_i,
-	input wire					  ex_func3_i,
+	input wire[`Func3Bus]		  ex_func3_i,
 	input wire                    ex_branch_flag_i,
 	//input from mem
 	input wire					  mem_wreg_i,
@@ -42,8 +42,17 @@ module id(
 	output reg[`RegBus]           branch_target_o,
 	
 	//ctrl
-	output reg 			     	  stallreq
+	output wire 			      stallreq
 );
+	wire[`RegBus] BRA_branch_target;
+	wire[`RegBus] JAL_branch_target;
+	wire[`RegBus] JALR_branch_target_tmp;
+	wire[`RegBus] JALR_branch_target;
+	assign BRA_branch_target = {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8], 1'b0} + pc_i;
+	assign JAL_branch_target = {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0} + pc_i;
+	assign JALR_branch_target_tmp = {{21{inst_i[31]}}, inst_i[30:20]} + reg1_o;
+	assign JALR_branch_target = {JALR_branch_target_tmp[31:1], 1'b0};
+
 	wire[`RegBus] pc_plus_4 = pc_i + 4;
 	wire[6:0] op  = inst_i[6:0];
 	wire[2:0] op2 = inst_i[14:12];
@@ -56,16 +65,16 @@ module id(
 
 	//BRANCH related stall
 	wire pre_inst_is_branch;
-	assign pre_inst_is_load = (ex_opcode_i == OP_JAL |
-							   ex_opcode_i == OP_JALR
-							   ex_opcode_i == OP_BRANCH)? 1'b1 : 1'b0;
+	assign pre_inst_is_branch = (ex_opcode_i == `OP_JAL |
+							   ex_opcode_i == `OP_JALR |
+							   ex_opcode_i == `OP_BRANCH)? 1'b1 : 1'b0;
 	//LOAD related stall
 	reg stallreq_for_reg1_loadrelate;
-	reg stallreq_for_reg1_loadrelate;
+	reg stallreq_for_reg2_loadrelate;
 	wire pre_inst_is_load;
 
 	//LOAD relationship judgement
-	assign pre_inst_is_load = (ex_opcode_i == OP_LOAD)? 1'b1 : 1'b0;
+	assign pre_inst_is_load = (ex_opcode_i == `OP_LOAD)? 1'b1 : 1'b0;
 
 	//Decoding
 	always @ (*) begin	
@@ -87,9 +96,7 @@ module id(
 			imm <= `ZeroWord;
 			//pc_reg
 			branch_flag_o <= `NotBranch;
-			branch_target_o <= `ZeroWord;	
-			//ctrl
-			stallreq <= `NoStop;	
+			branch_target_o <= `ZeroWord;
 	  	end else if (pre_inst_is_branch == 1'b1 &&
 		  			 ex_branch_flag_i == 1'b1) begin
 			//regfile
@@ -109,9 +116,7 @@ module id(
 			imm <= `ZeroWord;
 			//pc_reg
 			branch_flag_o <= `NotBranch;
-			branch_target_o <= `ZeroWord;	
-			//ctrl
-			stallreq <= `NoStop;
+			branch_target_o <= `ZeroWord;
 		end else begin
 			//regfile
 			reg1_read_o <= 1'b0;
@@ -130,9 +135,7 @@ module id(
 			imm <= `ZeroWord;
 			//pc_reg
 			branch_flag_o <= `NotBranch;
-			branch_target_o <= `ZeroWord;	
-			//ctrl
-			stallreq <= `NoStop;			
+			branch_target_o <= `ZeroWord;		
 		  case (op)
 		  	`OP_LUI: begin
 				alusel_o <= `ALU_LOG; opcode_o <= op;
@@ -153,7 +156,7 @@ module id(
 				wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
 				reg1_read_o <= 1'b0; reg2_read_o <= 1'b0;
 				branch_flag_o <= `Branch;	  	
-				branch_target_o <= {{12{inst_i[31]}}, inst_i[19:12], inst_i[20], inst_i[30:21], 1'b0} + pc_i;
+				branch_target_o <= JAL_branch_target;
 				link_addr_o <= pc_plus_4;
 				instvalid <= `InstValid;
 			end	//OP-JAL inst
@@ -162,7 +165,7 @@ module id(
 				wreg_o <= `WriteEnable; wd_o <= inst_i[11:7];
 				reg1_read_o <= 1'b1; reg2_read_o <= 1'b0;
 				branch_flag_o <= `Branch;	  	
-				branch_target_o <= ({{21{inst_i[31]}}, inst_i[30:20]} + reg1_o) & {31'b1,1'b0};
+				branch_target_o <= JALR_branch_target;
 				link_addr_o <= pc_plus_4;
 				instvalid <= `InstValid;
 			end	//OP-JALR inst
@@ -174,7 +177,7 @@ module id(
 						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
 						if (reg1_o == reg2_o) begin
 							branch_flag_o <= `Branch;	  	
-							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+							branch_target_o <= BRA_branch_target;
 						end
 						instvalid <= `InstValid;
 					end
@@ -184,7 +187,7 @@ module id(
 						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
 						if (reg1_o != reg2_o) begin
 							branch_flag_o <= `Branch;	  	
-							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+							branch_target_o <= BRA_branch_target;
 						end
 						instvalid <= `InstValid;
 					end
@@ -196,7 +199,7 @@ module id(
 							 (!reg1_o[31] && !reg2_o[31] && result[31]) ||
 							 (reg1_o[31] && reg2_o[31] && result[31])) begin
 							branch_flag_o <= `Branch;	  	
-							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+							branch_target_o <= BRA_branch_target;
 						end
 						instvalid <= `InstValid;
 					end
@@ -208,7 +211,7 @@ module id(
 							 (!reg1_o[31] && !reg2_o[31] && !result[31]) ||
 							 (reg1_o[31] && reg2_o[31] && !result[31])) begin
 							branch_flag_o <= `Branch;	  	
-							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+							branch_target_o <= BRA_branch_target;
 						end
 						instvalid <= `InstValid;
 					end
@@ -218,7 +221,7 @@ module id(
 						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
 						if (reg1_o < reg2_o) begin
 							branch_flag_o <= `Branch;	  	
-							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+							branch_target_o <= BRA_branch_target;
 						end
 						instvalid <= `InstValid;
 					end
@@ -228,12 +231,11 @@ module id(
 						reg1_read_o <= 1'b1; reg2_read_o <= 1'b1;
 						if (reg1_o >= reg2_o) begin
 							branch_flag_o <= `Branch;	  	
-							branch_target_o <= {{20{inst_i[31]}}, inst_i[7], inst_i[30:25], inst_i[11:8]} + pc_i;
+							branch_target_o <= BRA_branch_target;
 						end
 						instvalid <= `InstValid;
 					end
 					default: begin
-						
 					end
 				endcase //op2
 			end	//OP-BRANCH inst
@@ -484,6 +486,8 @@ module id(
 		stallreq_for_reg1_loadrelate <= `NoStop;
 		if(rst == `RstEnable) begin
 			reg1_o <= `ZeroWord;
+		end else if ((reg1_read_o == 1'b1) && (reg1_addr_o == 5'b0)) begin
+			reg1_o <= `ZeroWord;
 		end else if (pre_inst_is_load == 1'b1 && ex_wd_i == reg1_addr_o
 					&& reg1_read_o == 1'b1) begin
 			stallreq_for_reg1_loadrelate <= `Stop;
@@ -505,6 +509,8 @@ module id(
 	always @ (*) begin
 		stallreq_for_reg2_loadrelate <= `NoStop;
 		if(rst == `RstEnable) begin
+			reg2_o <= `ZeroWord;
+		end else if ((reg2_read_o == 1'b1) && (reg2_addr_o == 5'b0)) begin
 			reg2_o <= `ZeroWord;
 		end else if (pre_inst_is_load == 1'b1 && ex_wd_i == reg2_addr_o
 				&& reg2_read_o == 1'b1) begin

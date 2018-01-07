@@ -39,11 +39,7 @@ module regfile(
 	  		rdata1 <= `ZeroWord;
 	  	end else if((raddr1 == waddr) && (we == `WriteEnable) 
 	  	            && (re1 == `ReadEnable)) begin
-	  	  	if (waddr == 5'b0) begin
-				rdata1 <= `ZeroWord;
-			end else begin
-				rdata1 <= wdata;
-			end
+			rdata1 <= wdata;
 	  	end else if(re1 == `ReadEnable) begin
 	      	rdata1 <= regs[raddr1];
 	  	end else begin

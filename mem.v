@@ -197,7 +197,7 @@ module mem(
 					endcase
 				end
 				default: begin
-					$display("Error: module mem: < :: unknown opcode >");
+					//$display("Error: module mem: < :: unknown opcode >");
 				end
 			endcase
 		end    //if
