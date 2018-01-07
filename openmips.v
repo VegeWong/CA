@@ -96,14 +96,14 @@ module openmips(
 	pc_reg pc_reg0(
 		.clk(clk),
 		.rst(rst),
-		.pc(pc),
-		.id_ie(id_ie),
+		.stall(stall),
+
 		//ID模块的branch信号
 		.branch_flag_i(id_branch_flag_o),
 		.branch_target_address_i(id_branch_target_o),
 
-		.ce(rom_ce_o),
-		.stall(stall)
+		.pc(pc),
+		.ce(rom_ce_o)
 	);
 	
   assign rom_addr_o = pc;

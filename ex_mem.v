@@ -14,7 +14,7 @@ module ex_mem(
 	input wire[`RegBus]			  ex_wdata, 	
 	input wire[`OpcodeBus]		  ex_opcode,
 	input wire[`Func3Bus]		  ex_func3,
-	input wire[`RegBus]		  ex_mem_addr,
+	input wire[`RegBus]		  	  ex_mem_addr,
 	input wire[`RegBus]			  ex_reg2,
 	//�͵��ô�׶ε���Ϣ
 	output reg[`RegAddrBus]       mem_wd,
