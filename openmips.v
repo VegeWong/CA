@@ -9,6 +9,13 @@ module openmips(
 	output wire[`RegBus]           rom_addr_o,
 	output wire                    rom_ce_o
 	
+	//RAM
+	input wire[`RegBus]            ram_data_i,
+	output wire[`RegBus]           ram_addr_o,
+	output wire[`RegBus]           ram_data_o,
+	output wire                    ram_we_o,
+	output wire[3:0]               ram_sel_o,
+	output wire                    ram_ce_o   
 );
 
 	wire[`InstAddrBus] pc;
@@ -66,13 +73,6 @@ module openmips(
 	wire[`RegBus] mem_mem_addr_i;
 	wire[`RegBus] mem_reg2_i;
 
-	//连接MEM模块和RAM
-	wire[`RegBus] mem_mem_data_i;
-	wire[`RegBus] mem_mem_addr_o;
-	wire mem_mem_we_o;
-	wire[3:0] mem_mem_sel_o;
-	wire[`RegBus] mem_mem_data_o;
-	wire mem_mem_ce_o;
 
 	//连接访存阶段MEM模块的输出与MEM/WB模块的输入
 	wire mem_wreg_o;
@@ -286,7 +286,7 @@ module openmips(
 		.reg2_i(mem_reg2_i),
 
 		//来自内存RAM的信息
-		.mem_data_i(mem_mem_data_i),
+		.mem_data_i(ram_data_i),
 		
 		//送到MEM/WB模块的信息
 		.wd_o(mem_wd_o),
@@ -294,11 +294,11 @@ module openmips(
 		.wdata_o(mem_wdata_o),
 
 		//送到RAM的信息
-		.mem_addr_o(mem_mem_addr_o),
-		.mem_we_o(mem_mem_we_o),
-		.mem_sel_o(mem_mem_sel_o),
-		.mem_data_o(mem_mem_data_o),
-		.mem_ce_o(mem_mem_ce_o)
+		.mem_addr_o(ram_addr_o),
+		.mem_we_o(ram_we_o),
+		.mem_sel_o(ram_sel_o),
+		.mem_data_o(ram_data_o),
+		.mem_ce_o(ram_ce_o)
 	);
 
  	 //MEM/WB模块
