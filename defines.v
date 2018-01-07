@@ -130,3 +130,10 @@
 //==================      Branch related     ==================
 `define Branch      1'b1
 `define NotBranch   1'b0
+
+//==================      data_ram related     ==================
+`define DataAddrBus 31:0
+`define DataBus     31:0
+`define DataMemNum  131071
+`define DataMemNumLog2 17
+`define ByteWidth   7:0
