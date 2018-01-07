@@ -5,7 +5,6 @@ module if_id(
 	input wire					  clk,
 	input wire					  rst,
 	input wire[`CtrlBus]          stall,
-	input wire                    flush_from_branch,
 
 	input wire[`InstAddrBus]	  if_pc,
 	input wire[`InstBus]          if_inst,
@@ -22,14 +21,9 @@ module if_id(
 		  	id_pc <= `ZeroWord;
 			id_inst <= `ZeroWord;
 		end else if (stall[1] == `NoStop) begin
-			if (flush_from_branch == `Branch) begin
-				id_pc <= `ZeroWord;
-				id_inst <= `ZeroWord;
-			end else begin
-				id_pc <= if_pc;
-				id_inst <= {if_inst[7:0], if_inst[15:8],
-							if_inst[23:16], if_inst[31:24]};
-			end
+			id_pc <= if_pc;
+			id_inst <= {if_inst[7:0], if_inst[15:8],
+						if_inst[23:16], if_inst[31:24]};
 		end
 	end
 

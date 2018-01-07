@@ -12,7 +12,7 @@ module pc_reg(
 
 	output reg[`InstAddrBus]			pc,
 	output reg                          ce
-
+	
 	
 );
 

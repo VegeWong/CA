@@ -50,7 +50,8 @@ module id(
 	wire[`RegBus] result;
 	assign result = reg1_o + (~reg2_o) + 1;
 	assign inst_o = inst_i;
-	always @ (*) begin	
+	always @ (*) begin
+		//$display("begin decoding %h", inst_i);	
 		if (rst == `RstEnable) begin
 			//regfile
 			reg1_read_o <= 1'b0;
@@ -230,7 +231,7 @@ module id(
 						instvalid <= `InstValid;
 					end
 					default: begin
-						$display("Error: module id: < OP-LOAD :: unknown func3 -> %h >",inst_i);
+						//$display("Error: module id: < OP-LOAD :: unknown func3 -> %h >",inst_i);
 					end
 				endcase //op2
 			end	//OP-LOAD inst
@@ -255,7 +256,7 @@ module id(
 						instvalid <= `InstValid;
 					end
 					default: begin
-						$display("Error: module id: < OP-STORE :: unknown func3 -> %h >",inst_i);
+						//$display("Error: module id: < OP-STORE :: unknown func3 -> %h >",inst_i);
 					end
 				endcase //op2
 			end	//OP-STORE inst
@@ -327,12 +328,12 @@ module id(
 								instvalid <= `InstValid;
 							end
 							default: begin
-								$display("Error: module id: < OP-OP-IMM :: FUNCT3-SRLI-SRAI :: unknown func7 -> %h >",inst_i);
+								//$display("Error: module id: < OP-OP-IMM :: FUNCT3-SRLI-SRAI :: unknown func7 -> %h >",inst_i);
 							end
 						endcase //FUNCT3_SRLI_SRAI op3
 					end
 					default: begin
-						$display("Error: module id: < OP-OP-IMM :: unknown func3 -> %h >",inst_i);
+						//$display("Error: module id: < OP-OP-IMM :: unknown func3 -> %h >",inst_i);
 					end
 				endcase		//case OP_OP_IMME: op2
 		  	end //OP-OP-IMME inst
@@ -355,7 +356,7 @@ module id(
 								instvalid <= `InstValid;
 							end
 							default: begin
-								$display("Error: module id: < OP-O :: ADD_SUB :: unknown func3 -> %h >",inst_i);
+								//$display("Error: module id: < OP-O :: ADD_SUB :: unknown func3 -> %h >",inst_i);
 							end
 						endcase //ADD-SUB func7
 					end
@@ -404,7 +405,7 @@ module id(
 								instvalid <= `InstValid;
 							end
 							default: begin
-								$display("Error: module id: < OP-OP :: SRL_SRA :: unknown func7 -> %h >",inst_i);
+								//$display("Error: module id: < OP-OP :: SRL_SRA :: unknown func7 -> %h >",inst_i);
 							end
 						endcase//SRL_SRA op3
 					end
@@ -423,7 +424,7 @@ module id(
 						instvalid <= `InstValid;
 					end
 					default: begin
-						$display("Error: module id: < OP-OP :: unknown func3 -> %h >",inst_i);
+						//$display("Error: module id: < OP-OP :: unknown func3 -> %h >",inst_i);
 					end
 				endcase //OP-OP op2
 			end	//OP-OP inst
@@ -433,7 +434,7 @@ module id(
 				*/
 			end	//OP-MISC-MEM inst
 		    default: begin
-				$display("Error: module id: < :: unknown opcode -> %h >",inst_i);
+				//$display("Error: module id: < :: unknown opcode -> %h , %h>",inst_i, op);
 		    end
 		  endcase		  //case op			
 		end       //if

@@ -8,8 +8,8 @@ module mem(
 	input wire[`RegAddrBus]       wd_i,
 	input wire                    wreg_i,
 	input wire[`RegBus]			  wdata_i,
-	input wire[`RegBus]			  opcode_i,
-	input wire[`RegBus]			  func3_i,
+	input wire[`OpcodeBus]		  opcode_i,
+	input wire[`Func3Bus]		  func3_i,
 	input wire[`RegBus]			  mem_addr_i,
 	input wire[`RegBus]			  reg2_i,
 

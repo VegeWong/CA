@@ -35,7 +35,7 @@ module openmips(
 	//连接PC模块
 	wire id_branch_flag_o;
 	wire[`RegBus] id_branch_target_o;
-	
+	wire id_ie;
 	//连接ID/EX模块的输出与执行阶段EX模块的输入
 	wire[`AluselBus] ex_alusel_i;
 	wire[`OpcodeBus] ex_opcode_i;
@@ -61,8 +61,8 @@ module openmips(
 	wire mem_wreg_i;
 	wire[`RegAddrBus] mem_wd_i;
 	wire[`RegBus] mem_wdata_i;
-	wire[`RegBus] mem_opcode_i;
-	wire[`RegBus] mem_func3_i;
+	wire[`OpcodeBus] mem_opcode_i;
+	wire[`Func3Bus] mem_func3_i;
 	wire[`RegBus] mem_mem_addr_i;
 	wire[`RegBus] mem_reg2_i;
 
@@ -97,7 +97,7 @@ module openmips(
 		.clk(clk),
 		.rst(rst),
 		.pc(pc),
-
+		.id_ie(id_ie),
 		//ID模块的branch信号
 		.branch_flag_i(id_branch_flag_o),
 		.branch_target_address_i(id_branch_target_o),
@@ -113,7 +113,6 @@ module openmips(
 		.clk(clk),
 		.rst(rst),
 		.stall(stall),
-		.flush_from_branch(id_branch_flag_o),
 
 		.if_pc(pc),
 		.if_inst(rom_data_i),
@@ -126,6 +125,7 @@ module openmips(
 		.rst(rst),
 		.pc_i(id_pc_i),
 		.inst_i(id_inst_i),
+		.ie(id_ie),
 
 		.reg1_data_i(reg1_data),
 		.reg2_data_i(reg2_data),
@@ -312,5 +312,11 @@ module openmips(
 		.wb_wdata(wb_wdata_i)
 									       	
 	);
+	ctrl ctrl0(
+		.rst(rst),
 
+		.stallreq_from_id(stallreq_from_id),
+		.stallreq_from_ex(stallreq_from_ex),
+		.stall(stall)
+	);
 endmodule

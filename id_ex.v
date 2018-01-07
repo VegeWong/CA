@@ -5,7 +5,7 @@ module id_ex(
 	input wire					  clk,
 	input wire					  rst,
 	input wire[`CtrlBus]          stall,
-	
+
 	//id
 	input wire[`AluselBus]        id_alusel,
 	input wire[`OpcodeBus]    	  id_opcode,

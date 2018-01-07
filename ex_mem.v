@@ -8,20 +8,20 @@ module ex_mem(
 	//ctrl
 	input wire[`CtrlBus]          stall,
 
-	//À´×ÔÖ´ÐÐ½×¶ÎµÄÐÅÏ¢	
+	//ï¿½ï¿½ï¿½ï¿½Ö´ï¿½Ð½×¶Îµï¿½ï¿½ï¿½Ï¢	
 	input wire[`RegAddrBus]       ex_wd,
 	input wire                    ex_wreg,
 	input wire[`RegBus]			  ex_wdata, 	
-	input wire[`RegBus]			  ex_opcode,
-	input wire[`RegBus]			  ex_func3,
-	input wire[`RegBus]			  ex_mem_addr,
+	input wire[`OpcodeBus]		  ex_opcode,
+	input wire[`Func3Bus]		  ex_func3,
+	input wire[`RegBus]		  ex_mem_addr,
 	input wire[`RegBus]			  ex_reg2,
-	//ËÍµ½·Ã´æ½×¶ÎµÄÐÅÏ¢
+	//ï¿½Íµï¿½ï¿½Ã´ï¿½×¶Îµï¿½ï¿½ï¿½Ï¢
 	output reg[`RegAddrBus]       mem_wd,
 	output reg                    mem_wreg,
 	output reg[`RegBus]			  mem_wdata,
-	output reg[`RegBus]			  mem_opcode,
-	output reg[`RegBus]			  mem_func3,
+	output reg[`OpcodeBus]		  mem_opcode,
+	output reg[`Func3Bus]		  mem_func3,
 	output reg[`RegBus]			  mem_mem_addr,
 	output reg[`RegBus]			  mem_reg2
 );
