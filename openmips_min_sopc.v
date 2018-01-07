@@ -24,7 +24,7 @@ module openmips_min_sopc(
 		
 		.rom_addr_o(inst_addr),
 		.rom_data_i(inst),
-		.rom_ce_o(rom_ce)
+		.rom_ce_o(rom_ce),
 
 		.ram_we_o(mem_we_i),
 		.ram_addr_o(mem_addr_i),
