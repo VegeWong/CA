@@ -80,6 +80,7 @@ module openmips(
 	wire[3:0] cache_sel_o;
 	wire[`RegBus] cache_data_o;
 	wire cache_ce_o;
+	wire[`RegBus] cache_data_i;
 
 	//连接访存阶段MEM模块的输出与MEM/WB模块的输入
 	wire mem_wreg_o;
@@ -293,7 +294,7 @@ module openmips(
 		.reg2_i(mem_reg2_i),
 
 		//来自内存RAM的信息
-		.mem_data_i(ram_data_i),
+		.mem_data_i(cache_data_i),
 		
 		//送到MEM/WB模块的信息
 		.wd_o(mem_wd_o),
