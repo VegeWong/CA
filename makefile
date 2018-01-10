@@ -4,7 +4,7 @@ FILES = defines.v pc_reg.v ctrl.v          		\
 		inst_rom.v if_id.v id.v                 \
 		regfile.v id_ex.v ex.v					\
 		ex_mem.v mem.v mem_wb.v 				\
-		data_ram.v                              \
+		data_ram.v cache.v                      \
 		openmips.v openmips_min_sopc.v 			\
 		openmips_min_sopc_tb.v  
 

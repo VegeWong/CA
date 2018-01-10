@@ -37,6 +37,7 @@ module openmips(
 	//连接Ctrl模块
 	wire stallreq_from_id;	
 	wire stallreq_from_ex;
+	wire stallreq_from_cache;
 	wire[`CtrlBus] stall;
 
 	//连接PC模块
@@ -73,6 +74,12 @@ module openmips(
 	wire[`RegBus] mem_mem_addr_i;
 	wire[`RegBus] mem_reg2_i;
 
+	//MEM连接Cache
+	wire[`RegBus] cache_addr_o;
+	wire cache_we_o;
+	wire[3:0] cache_sel_o;
+	wire[`RegBus] cache_data_o;
+	wire cache_ce_o;
 
 	//连接访存阶段MEM模块的输出与MEM/WB模块的输入
 	wire mem_wreg_o;
@@ -293,12 +300,36 @@ module openmips(
 		.wreg_o(mem_wreg_o),
 		.wdata_o(mem_wdata_o),
 
-		//送到RAM的信息
-		.mem_addr_o(ram_addr_o),
-		.mem_we_o(ram_we_o),
-		.mem_sel_o(ram_sel_o),
-		.mem_data_o(ram_data_o),
-		.mem_ce_o(ram_ce_o)
+		//送到cache的信息
+		.mem_addr_o(cache_addr_o),
+		.mem_we_o(cache_we_o),
+		.mem_sel_o(cache_sel_o),
+		.mem_data_o(cache_data_o),
+		.mem_ce_o(cache_ce_o)
+	);
+	
+	cache cache0(
+		.rst(rst),
+		.clk(clk),
+
+		.mem_addr_i(cache_addr_o),
+		.mem_we_i(cache_we_o),
+		.mem_sel_i(cache_sel_o),
+		.mem_data_i(cache_data_o),
+		.mem_ce_i(cache_ce_o),
+
+		.ram_data_i(ram_data_i),
+
+		.ram_addr_o(ram_addr_o),
+		.ram_we_o(ram_we_o),
+		.ram_sel_o(ram_sel_o),
+		.ram_data_o(ram_data_o),
+		.ram_ce_o(ram_ce_o),
+
+		.mem_data_o(cache_data_i),
+
+		.stallreq(stallreq_from_cache)
+
 	);
 
  	 //MEM/WB模块
@@ -323,6 +354,7 @@ module openmips(
 
 		.stallreq_from_id(stallreq_from_id),
 		.stallreq_from_ex(stallreq_from_ex),
+		.stallreq_from_cache(stallreq_from_cache),
 		.stall(stall)
 	);
 endmodule
