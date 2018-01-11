@@ -1,5 +1,6 @@
 //block size: 4 bytes
 //write policy: write through
+
 `include "defines.v"
 
 module cache(
@@ -63,6 +64,7 @@ module cache(
                                  cache[3][`CacheTag] == mem_addr_i);
                 end
             endcase
+            $display("Hit = %b", hit);
         end
     end //always
 
@@ -90,6 +92,7 @@ module cache(
                 ram_sel_o <= 4'b1111;
                 ram_data_o <= write_buffer[`DataStorage];
                 ram_ce_o <= `ChipEnable;
+                $display("spare time writing");
             end
         end else if (!hit) begin
             if (mem_we_i == `WriteDisable) begin
@@ -123,6 +126,7 @@ module cache(
                         mem_data_o <= (cache[3][`DataStorage]);
                     end
                 endcase
+                ready <= 1'b1;
             end else begin
                 case (set_select)
                     2'b00: begin
@@ -182,9 +186,8 @@ module cache(
                         end	
                     end
                 endcase
-
+                ready <= 1'b1;
             end
-            ready <= 1'b1;
         end
     end //always
 
