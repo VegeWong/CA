@@ -32,7 +32,7 @@ module cache(
     output wire                stallreq
 );
     
-    wire set_select;
+    wire[1:0] set_select;
     reg[62:0] cache0, cache1, cache2, cache3;
     reg hit;
     reg ready;
@@ -77,7 +77,7 @@ module cache(
             mem_data_o <= `ZeroWord;
             ready <= 1'b1;
         end else if (mem_ce_i == `ChipDisable) begin
-            if (write_buffer[`ValidBit] == 1'b0) begin
+            if (write_buffer[`ValidBit] == `Invalid) begin
                 ram_addr_o <= `ZeroWord;
                 ram_we_o <= `WriteDisable;
                 ram_sel_o <= 4'b0;
@@ -91,10 +91,18 @@ module cache(
                 ram_data_o <= write_buffer[`DataStorage];
                 ram_ce_o <= `ChipEnable;
                 write_buffer[`ValidBit] = `Invalid;
-                $display("spare time writing");
+                $display("Spare Time: write_buffer writing back");
             end
+        // end else if (write_buffer[`ValidBit] == `Valid) begin
+        //     ram_addr_o <= {write_buffer[`CacheTag], 2'b0};
+        //     ram_we_o <= `WriteEnable;
+        //     ram_sel_o <= 4'b1111;
+        //     ram_data_o <= write_buffer[`DataStorage];
+        //     ram_ce_o <= `ChipEnable;
+        //     write_buffer[`ValidBit] <= `Invalid;
+        //     $display("WR conflict: write_buffer writing back");
         end else if (hit == 1'b0) begin
-                $display("Not Hit, visiting ram, mem_addr_i = %h, mem_data_i = %h",mem_addr_i, mem_data_i);
+                $display("RAM visvit: mem_addr_i = %h, mem_data_i = %h",mem_addr_i, mem_data_i);
                 ram_addr_o <= mem_addr_i;
                 ram_we_o <= `WriteDisable;
                 ram_sel_o <= 4'b1;
