@@ -143,9 +143,8 @@
 `define ValidBit    62
 `define Valid       1'b1
 `define Invalid     1'b0
-//`define LRUBit      64
-//`define LeftRep     1'b0
-//`define RightRep    1'b1
+`define LeftRep     1'b0
+`define RightRep    1'b1
 `define Hit         1'b1
 `define NotHit      1'b0
 `define CacheNOP    62'b0
