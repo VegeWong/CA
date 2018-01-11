@@ -17,7 +17,7 @@ module cache(
 
     //from RAM
     input wire[`RegBus]        ram_data_i,
-
+    input wire                 ram_data_ready,
     //to RAM
     output reg[`RegBus]        ram_addr_o,
     output reg                 ram_we_o,
@@ -33,7 +33,7 @@ module cache(
 );
     
     wire set_select;
-    reg[64:0] cache[0:4];
+    reg[64:0] cache0, cache1, cache2, cache3;
     reg hit;
     reg ready;
     reg[64:0] write_buffer;
@@ -43,25 +43,23 @@ module cache(
     always @ (*) begin
         if (rst == `RstEnable) begin
             hit <= `NotHit;
-        end else if (mem_ce_i == `ChipDisable) begin
-            hit <= `NotHit;
         end else begin
             case (set_select)
                 2'b00: begin
-                    hit <= (cache[0][`ValidBit] == `Valid &&
-                                 cache[0][`CacheTag] == mem_addr_i);
+                    hit <= (cache0[`ValidBit] == `Valid &&
+                            cache0[`CacheTag] == mem_addr_i);
                 end
                 2'b01: begin
-                    hit <= (cache[1][`ValidBit] == `Valid &&
-                                 cache[1][`CacheTag] == mem_addr_i);
+                    hit <= (cache1[`ValidBit] == `Valid &&
+                            cache1[`CacheTag] == mem_addr_i);
                 end
                 2'b10: begin
-                    hit <= (cache[2][`ValidBit] == `Valid &&
-                                 cache[2][`CacheTag] == mem_addr_i);
+                    hit <= (cache2[`ValidBit] == `Valid &&
+                            cache2[`CacheTag] == mem_addr_i);
                 end
                 2'b11: begin
-                    hit <= (cache[3][`ValidBit] == `Valid &&
-                                 cache[3][`CacheTag] == mem_addr_i);
+                    hit <= (cache3[`ValidBit] == `Valid &&
+                            cache3[`CacheTag] == mem_addr_i);
                 end
             endcase
             $display("Hit = %b", hit);
@@ -78,7 +76,7 @@ module cache(
             ram_ce_o <= `ChipDisable;
             mem_data_o <= `ZeroWord;
             ready <= 1'b1;
-        end else if (ram_ce_o == `ChipDisable) begin
+        end else if (mem_ce_i == `ChipDisable) begin
             if (write_buffer[`ValidBit] == 1'b0) begin
                 ram_addr_o <= `ZeroWord;
                 ram_we_o <= `WriteDisable;
@@ -92,19 +90,16 @@ module cache(
                 ram_sel_o <= 4'b1111;
                 ram_data_o <= write_buffer[`DataStorage];
                 ram_ce_o <= `ChipEnable;
+                write_buffer[`ValidBit] = `Invalid;
                 $display("spare time writing");
             end
-        end else if (!hit) begin
-            if (mem_we_i == `WriteDisable) begin
+        end else if (hit == 1'b0) begin
+                $display("Not Hit, visiting ram, mem_addr_i = %h, mem_addr_i = %h",mem_addr_i, mem_data_i);
                 ram_addr_o <= mem_addr_i;
-                ram_we_o <= mem_we_i;
-                ram_sel_o <= mem_sel_i;
-                ram_data_o <= mem_data_i;
+                ram_we_o <= `WriteDisable;
+                ram_sel_o <= 4'b1;
+                ram_data_o <= `ZeroWord;
                 ram_ce_o <= mem_ce_i;
-            end else begin
-                write_buffer <= {1'b1, mem_addr_i[31:0], mem_data_i[31:0]};
-                ready <= 1'b1;
-            end
         end else begin
             ram_addr_o <= `ZeroWord;
             ram_we_o <= `WriteDisable;
@@ -114,16 +109,16 @@ module cache(
             if (mem_we_i == `WriteDisable) begin
                 case (set_select)
                     2'b00: begin
-                        mem_data_o <= (cache[0][`DataStorage]);
+                        mem_data_o <= cache0[`DataStorage];
                     end
                     2'b01: begin
-                        mem_data_o <= (cache[1][`DataStorage]);
+                        mem_data_o <= cache1[`DataStorage];
                     end
                     2'b10: begin
-                        mem_data_o <= (cache[2][`DataStorage]);
+                        mem_data_o <= cache2[`DataStorage];
                     end
                     2'b11: begin
-                        mem_data_o <= (cache[3][`DataStorage]);
+                        mem_data_o <= cache3[`DataStorage];
                     end
                 endcase
                 ready <= 1'b1;
@@ -131,58 +126,58 @@ module cache(
                 case (set_select)
                     2'b00: begin
                         if (mem_sel_i[3] == 1'b1) begin
-                            cache[0][31:24] <= mem_data_i[31:24];
+                            cache0[31:24] <= mem_data_i[31:24];
                         end
                         if (mem_sel_i[2] == 1'b1) begin
-                            cache[0][23:16] <= mem_data_i[23:16];
+                            cache0[23:16] <= mem_data_i[23:16];
                         end
                         if (mem_sel_i[1] == 1'b1) begin
-                            cache[0][15:8] <= mem_data_i[15:8];
+                            cache0[15:8] <= mem_data_i[15:8];
                         end
                         if (mem_sel_i[0] == 1'b1) begin
-                            cache[0][7:0] <= mem_data_i[7:0];
+                            cache0[7:0] <= mem_data_i[7:0];
                         end	
                     end
                     2'b01: begin
                          if (mem_sel_i[3] == 1'b1) begin
-                            cache[1][31:24] <= mem_data_i[31:24];
+                            cache1[31:24] <= mem_data_i[31:24];
                         end
                         if (mem_sel_i[2] == 1'b1) begin
-                            cache[1][23:16] <= mem_data_i[23:16];
+                            cache1[23:16] <= mem_data_i[23:16];
                         end
                         if (mem_sel_i[1] == 1'b1) begin
-                            cache[1][15:8] <= mem_data_i[15:8];
+                            cache1[15:8] <= mem_data_i[15:8];
                         end
                         if (mem_sel_i[0] == 1'b1) begin
-                            cache[1][7:0] <= mem_data_i[7:0];
+                            cache1[7:0] <= mem_data_i[7:0];
                         end	
                     end
                     2'b10: begin
                          if (mem_sel_i[3] == 1'b1) begin
-                            cache[2][31:24] <= mem_data_i[31:24];
+                            cache2[31:24] <= mem_data_i[31:24];
                         end
                         if (mem_sel_i[2] == 1'b1) begin
-                            cache[2][23:16] <= mem_data_i[23:16];
+                            cache2[23:16] <= mem_data_i[23:16];
                         end
                         if (mem_sel_i[1] == 1'b1) begin
-                            cache[2][15:8] <= mem_data_i[15:8];
+                            cache2[15:8] <= mem_data_i[15:8];
                         end
                         if (mem_sel_i[0] == 1'b1) begin
-                            cache[2][7:0] <= mem_data_i[7:0];
+                            cache2[7:0] <= mem_data_i[7:0];
                         end	
                     end
                     2'b11: begin
                          if (mem_sel_i[3] == 1'b1) begin
-                            cache[3][31:24] <= mem_data_i[31:24];
+                            cache3[31:24] <= mem_data_i[31:24];
                         end
                         if (mem_sel_i[2] == 1'b1) begin
-                            cache[3][23:16] <= mem_data_i[23:16];
+                            cache3[23:16] <= mem_data_i[23:16];
                         end
                         if (mem_sel_i[1] == 1'b1) begin
-                            cache[3][15:8] <= mem_data_i[15:8];
+                            cache3[15:8] <= mem_data_i[15:8];
                         end
                         if (mem_sel_i[0] == 1'b1) begin
-                            cache[3][7:0] <= mem_data_i[7:0];
+                            cache3[7:0] <= mem_data_i[7:0];
                         end	
                     end
                 endcase
@@ -191,40 +186,41 @@ module cache(
         end
     end //always
 
-    always @ (*) begin
+    always @ (posedge clk) begin
         if (rst == `RstEnable) begin
-            cache[0] <= `CacheNOP;
-            cache[1] <= `CacheNOP;
-            cache[2] <= `CacheNOP;
-            cache[3] <= `CacheNOP;
-        end else if (ready == 1'b0) begin
+            write_buffer <= 65'b0;
+            cache0 <= `CacheNOP;
+            cache1 <= `CacheNOP;
+            cache2 <= `CacheNOP;
+            cache3 <= `CacheNOP;
+        end else if (ready == 1'b0 && ram_data_ready == 1'b1) begin
             case (set_select)
                 2'b00: begin
-                    if (cache[0][`ValidBit] == 1'b1) begin
-                        write_buffer <= cache[0][64:0];
+                    if (cache0[`ValidBit] == 1'b1) begin
+                        write_buffer <= cache0[64:0];
                     end else begin
-                        write_buffer <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
+                        cache0 <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
                     end
                 end
                 2'b01: begin
-                    if (cache[1][`ValidBit] == 1'b1) begin
-                        write_buffer <= cache[1][64:0];
+                    if (cache1[`ValidBit] == 1'b1) begin
+                        write_buffer <= cache1[64:0];
                     end else begin
-                        cache[1] <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
+                        cache1 <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
                     end
                 end
                 2'b10: begin
-                    if (cache[2][`ValidBit] == 1'b1) begin
-                        write_buffer <= cache[2][64:0];
+                    if (cache2[`ValidBit] == 1'b1) begin
+                        write_buffer <= cache2[64:0];
                     end else begin
-                        cache[2] <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
+                        cache2 <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
                     end
                 end
                 2'b11: begin
-                   if (cache[3][`ValidBit] == 1'b1) begin
-                        write_buffer <= cache[3][64:0];
+                   if (cache3[`ValidBit] == 1'b1) begin
+                        write_buffer <= cache3[64:0];
                     end else begin
-                        cache[3] <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
+                        cache3 <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
                     end
                 end
             endcase

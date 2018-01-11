@@ -2,16 +2,17 @@
 
 module data_ram(
 
+	input wire                          rst,
 	input wire							clk,
 	input wire							ce,
 	input wire							we,
 	input wire[`DataAddrBus]			addr,
 	input wire[3:0]						sel,
 	input wire[`DataBus]				data_i,
-	output reg[`DataBus]			    data_o
+	output reg[`DataBus]			    data_o,
+	output reg                          data_ready
 	
 );
-
 	reg[`ByteWidth]  data_mem0[0:`DataMemNum-1];
 	reg[`ByteWidth]  data_mem1[0:`DataMemNum-1];
 	reg[`ByteWidth]  data_mem2[0:`DataMemNum-1];
@@ -37,13 +38,16 @@ module data_ram(
 	end
 	
 	always @ (*) begin
+		data_ready <= 1'b0;
 		if (ce == `ChipDisable) begin
 			data_o <= `ZeroWord;
-	  end else if(we == `WriteDisable) begin
+	  	end else if(we == `WriteDisable) begin
 		    data_o <= {data_mem3[addr[`DataMemNumLog2+1:2]],
 		               data_mem2[addr[`DataMemNumLog2+1:2]],
 		               data_mem1[addr[`DataMemNumLog2+1:2]],
 		               data_mem0[addr[`DataMemNumLog2+1:2]]};
+			$display("ram data ready");
+			data_ready <= 1'b1;
 		end else begin
 				data_o <= `ZeroWord;
 		end

@@ -12,6 +12,7 @@ module openmips_min_sopc(
   wire[`InstBus] inst;
   wire rom_ce;
   wire mem_we_i;
+  wire mem_data_ready;
   wire[`RegBus] mem_addr_i;
   wire[`RegBus] mem_data_i;
   wire[`RegBus] mem_data_o;
@@ -31,6 +32,7 @@ module openmips_min_sopc(
 		.ram_sel_o(mem_sel_i),
 		.ram_data_o(mem_data_i),
 		.ram_data_i(mem_data_o),
+		.ram_data_ready(mem_data_ready),
 		.ram_ce_o(mem_ce_i)	
 	);
 	
@@ -41,12 +43,14 @@ module openmips_min_sopc(
 	);
 
 	data_ram data_ram0(
+		.rst(rst),
 		.clk(clk),
 		.we(mem_we_i),
 		.addr(mem_addr_i),
 		.sel(mem_sel_i),
 		.data_i(mem_data_i),
 		.data_o(mem_data_o),
+		.data_ready(mem_data_ready),
 		.ce(mem_ce_i)		
 	);
 

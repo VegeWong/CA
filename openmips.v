@@ -11,6 +11,7 @@ module openmips(
 	
 	//RAM
 	input wire[`RegBus]            ram_data_i,
+	input wire                     ram_data_ready,
 	output wire[`RegBus]           ram_addr_o,
 	output wire[`RegBus]           ram_data_o,
 	output wire                    ram_we_o,
@@ -320,6 +321,7 @@ module openmips(
 		.mem_ce_i(cache_ce_o),
 
 		.ram_data_i(ram_data_i),
+		.ram_data_ready(ram_data_ready),
 
 		.ram_addr_o(ram_addr_o),
 		.ram_we_o(ram_we_o),

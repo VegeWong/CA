@@ -134,7 +134,7 @@
 //==================      data_ram related     ==================
 `define DataAddrBus 31:0
 `define DataBus     31:0
-`define DataMemNum  1024
+`define DataMemNum  40
 `define DataMemNumLog2 10
 `define ByteWidth   7:0
 

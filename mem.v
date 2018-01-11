@@ -48,13 +48,13 @@ module mem(
 		  	wd_o <= wd_i;
 			wreg_o <= wreg_i;
 			wdata_o <= wdata_i;
-			mem_addr_o <= `ZeroWord;
-			mem_we <= `WriteDisable;
-			mem_sel_o <= 4'b1111;
-			mem_data_o <= `ZeroWord;
-			mem_ce_o <= `ChipDisable;
 			case (opcode_i)
 				`OP_LOAD: begin
+					mem_addr_o <= `ZeroWord;
+					mem_we <= `WriteDisable;
+					mem_sel_o <= 4'b1111;
+					mem_data_o <= `ZeroWord;
+					mem_ce_o <= `ChipDisable;
 					case (func3_i)
 						`FUNCT3_LB: begin
 							mem_addr_o <= mem_addr_i;
@@ -145,6 +145,11 @@ module mem(
 					endcase
 				end
 				`OP_STORE: begin
+					mem_addr_o <= `ZeroWord;
+					mem_we <= `WriteDisable;
+					mem_sel_o <= 4'b1111;
+					mem_data_o <= `ZeroWord;
+					mem_ce_o <= `ChipDisable;
 					case (func3_i)
 						`FUNCT3_SB: begin
 							mem_addr_o <= mem_addr_i;
@@ -197,7 +202,7 @@ module mem(
 					endcase
 				end
 				default: begin
-					//$display("Error: module mem: < :: unknown opcode >");
+					mem_ce_o <= `ChipDisable;
 				end
 			endcase
 		end    //if
