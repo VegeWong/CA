@@ -34,7 +34,9 @@ module cache(
     
     wire[1:0] set_select;
     reg[62:0] cache0, cache1, cache2, cache3;
-    reg hit;
+    reg[62:0] cache4, cache5, cache6, cache7;
+    reg LRU_set0, LRU_set1, LRU_set2, LRU_set3;
+    reg hit_way0, hit_way1, hit;
     reg ready;
     reg[62:0] write_buffer;
 
@@ -42,24 +44,38 @@ module cache(
 
     always @ (*) begin
         if (rst == `RstEnable) begin
+            hit_way0 <= `NotHit;
+            hit_way1 <= `NotHit;
             hit <= `NotHit;
         end else begin
             case (set_select)
                 2'b00: begin
-                    hit <= (cache0[`ValidBit] == `Valid &&
-                            cache0[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit_way0 <= (cache0[`ValidBit] == `Valid &&
+                                 cache0[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit_way1 <= (cache4[`ValidBit] == `Valid &&
+                                 cache4[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit <= hit_way0 | hit_way1;
                 end
                 2'b01: begin
-                    hit <= (cache1[`ValidBit] == `Valid &&
-                            cache1[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit_way0 <= (cache1[`ValidBit] == `Valid &&
+                                 cache1[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit_way1 <= (cache5[`ValidBit] == `Valid &&
+                                 cache5[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit <= hit_way0 | hit_way1;
                 end
                 2'b10: begin
-                    hit <= (cache2[`ValidBit] == `Valid &&
-                            cache2[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit_way0 <= (cache2[`ValidBit] == `Valid &&
+                                 cache2[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit_way1 <= (cache6[`ValidBit] == `Valid &&
+                                 cache6[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit <= hit_way0 | hit_way1;
                 end
                 2'b11: begin
-                    hit <= (cache3[`ValidBit] == `Valid &&
-                            cache3[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit_way0 <= (cache3[`ValidBit] == `Valid &&
+                                 cache3[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit_way1 <= (cache7[`ValidBit] == `Valid &&
+                                 cache7[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
+                    hit <= hit_way0 | hit_way1;
                 end
             endcase
             $display("Hit = %b", hit);
@@ -117,76 +133,168 @@ module cache(
             if (mem_we_i == `WriteDisable) begin
                 case (set_select)
                     2'b00: begin
-                        mem_data_o <= cache0[`DataStorage];
+                        if (hit_way0 == `Hit) begin
+                            LRU_set0 <= `RightRep;
+                            mem_data_o <= cache0[`DataStorage];
+                        end else begin
+                            LRU_set0 <= `LeftRep;
+                            mem_data_o <= cache4[`DataStorage];
+                        end
                     end
                     2'b01: begin
-                        mem_data_o <= cache1[`DataStorage];
+                        if (hit_way0 == `Hit) begin
+                            LRU_set1 <= `RightRep;
+                            mem_data_o <= cache1[`DataStorage];
+                        end else begin
+                            LRU_set1 <= `LeftRep;
+                            mem_data_o <= cache5[`DataStorage];
+                        end
                     end
                     2'b10: begin
-                        mem_data_o <= cache2[`DataStorage];
+                        if (hit_way0 == `Hit) begin
+                            LRU_set2 <= `RightRep;
+                            mem_data_o <= cache2[`DataStorage];
+                        end else begin
+                            LRU_set2 <= `LeftRep;
+                            mem_data_o <= cache6[`DataStorage];
+                        end
                     end
                     2'b11: begin
-                        mem_data_o <= cache3[`DataStorage];
+                        if (hit_way0 == `Hit) begin
+                            LRU_set3 <= `RightRep;
+                            mem_data_o <= cache3[`DataStorage];
+                        end else begin
+                            LRU_set3 <= `LeftRep;
+                            mem_data_o <= cache7[`DataStorage];
+                        end
                     end
                 endcase
                 ready <= 1'b1;
             end else begin
                 case (set_select)
                     2'b00: begin
-                        if (mem_sel_i[3] == 1'b1) begin
-                            cache0[31:24] <= mem_data_i[31:24];
+                        if (hit_way0 == `Hit) begin
+                            LRU_set0 <= `RightRep;
+                            if (mem_sel_i[3] == 1'b1) begin
+                                cache0[31:24] <= mem_data_i[31:24];
+                            end
+                            if (mem_sel_i[2] == 1'b1) begin
+                                cache0[23:16] <= mem_data_i[23:16];
+                            end
+                            if (mem_sel_i[1] == 1'b1) begin
+                                cache0[15:8] <= mem_data_i[15:8];
+                            end
+                            if (mem_sel_i[0] == 1'b1) begin
+                                cache0[7:0] <= mem_data_i[7:0];
+                            end
+                        end else begin
+                            LRU_set0 <= `LeftRep;
+                            if (mem_sel_i[3] == 1'b1) begin
+                                cache4[31:24] <= mem_data_i[31:24];
+                            end
+                            if (mem_sel_i[2] == 1'b1) begin
+                                cache4[23:16] <= mem_data_i[23:16];
+                            end
+                            if (mem_sel_i[1] == 1'b1) begin
+                                cache4[15:8] <= mem_data_i[15:8];
+                            end
+                            if (mem_sel_i[0] == 1'b1) begin
+                                cache4[7:0] <= mem_data_i[7:0];
+                            end
                         end
-                        if (mem_sel_i[2] == 1'b1) begin
-                            cache0[23:16] <= mem_data_i[23:16];
-                        end
-                        if (mem_sel_i[1] == 1'b1) begin
-                            cache0[15:8] <= mem_data_i[15:8];
-                        end
-                        if (mem_sel_i[0] == 1'b1) begin
-                            cache0[7:0] <= mem_data_i[7:0];
-                        end	
                     end
                     2'b01: begin
-                         if (mem_sel_i[3] == 1'b1) begin
-                            cache1[31:24] <= mem_data_i[31:24];
+                        if (hit_way0 == `Hit) begin
+                            LRU_set1 <= `RightRep;
+                            if (mem_sel_i[3] == 1'b1) begin
+                                cache1[31:24] <= mem_data_i[31:24];
+                            end
+                            if (mem_sel_i[2] == 1'b1) begin
+                                cache1[23:16] <= mem_data_i[23:16];
+                            end
+                            if (mem_sel_i[1] == 1'b1) begin
+                                cache1[15:8] <= mem_data_i[15:8];
+                            end
+                            if (mem_sel_i[0] == 1'b1) begin
+                                cache1[7:0] <= mem_data_i[7:0];
+                            end
+                        end else begin
+                            LRU_set1 <= `LeftRep;
+                            if (mem_sel_i[3] == 1'b1) begin
+                                cache5[31:24] <= mem_data_i[31:24];
+                            end
+                            if (mem_sel_i[2] == 1'b1) begin
+                                cache5[23:16] <= mem_data_i[23:16];
+                            end
+                            if (mem_sel_i[1] == 1'b1) begin
+                                cache5[15:8] <= mem_data_i[15:8];
+                            end
+                            if (mem_sel_i[0] == 1'b1) begin
+                                cache5[7:0] <= mem_data_i[7:0];
+                            end
                         end
-                        if (mem_sel_i[2] == 1'b1) begin
-                            cache1[23:16] <= mem_data_i[23:16];
-                        end
-                        if (mem_sel_i[1] == 1'b1) begin
-                            cache1[15:8] <= mem_data_i[15:8];
-                        end
-                        if (mem_sel_i[0] == 1'b1) begin
-                            cache1[7:0] <= mem_data_i[7:0];
-                        end	
                     end
                     2'b10: begin
-                         if (mem_sel_i[3] == 1'b1) begin
-                            cache2[31:24] <= mem_data_i[31:24];
+                        if (hit_way0 == `Hit) begin
+                            LRU_set2 <= `RightRep;
+                            if (mem_sel_i[3] == 1'b1) begin
+                                cache2[31:24] <= mem_data_i[31:24];
+                            end
+                            if (mem_sel_i[2] == 1'b1) begin
+                                cache2[23:16] <= mem_data_i[23:16];
+                            end
+                            if (mem_sel_i[1] == 1'b1) begin
+                                cache2[15:8] <= mem_data_i[15:8];
+                            end
+                            if (mem_sel_i[0] == 1'b1) begin
+                                cache2[7:0] <= mem_data_i[7:0];
+                            end
+                        end else begin
+                            LRU_set2 <= `LeftRep;
+                            if (mem_sel_i[3] == 1'b1) begin
+                                cache6[31:24] <= mem_data_i[31:24];
+                            end
+                            if (mem_sel_i[2] == 1'b1) begin
+                                cache6[23:16] <= mem_data_i[23:16];
+                            end
+                            if (mem_sel_i[1] == 1'b1) begin
+                                cache6[15:8] <= mem_data_i[15:8];
+                            end
+                            if (mem_sel_i[0] == 1'b1) begin
+                                cache6[7:0] <= mem_data_i[7:0];
+                            end
                         end
-                        if (mem_sel_i[2] == 1'b1) begin
-                            cache2[23:16] <= mem_data_i[23:16];
-                        end
-                        if (mem_sel_i[1] == 1'b1) begin
-                            cache2[15:8] <= mem_data_i[15:8];
-                        end
-                        if (mem_sel_i[0] == 1'b1) begin
-                            cache2[7:0] <= mem_data_i[7:0];
-                        end	
                     end
                     2'b11: begin
-                         if (mem_sel_i[3] == 1'b1) begin
-                            cache3[31:24] <= mem_data_i[31:24];
+                        if (hit_way0 == `Hit) begin
+                            LRU_set3 <= `RightRep;
+                            if (mem_sel_i[3] == 1'b1) begin
+                                cache3[31:24] <= mem_data_i[31:24];
+                            end
+                            if (mem_sel_i[2] == 1'b1) begin
+                                cache3[23:16] <= mem_data_i[23:16];
+                            end
+                            if (mem_sel_i[1] == 1'b1) begin
+                                cache3[15:8] <= mem_data_i[15:8];
+                            end
+                            if (mem_sel_i[0] == 1'b1) begin
+                                cache3[7:0] <= mem_data_i[7:0];
+                            end
+                        end else begin
+                            LRU_set3 <= `LeftRep;
+                            if (mem_sel_i[3] == 1'b1) begin
+                                cache7[31:24] <= mem_data_i[31:24];
+                            end
+                            if (mem_sel_i[2] == 1'b1) begin
+                                cache7[23:16] <= mem_data_i[23:16];
+                            end
+                            if (mem_sel_i[1] == 1'b1) begin
+                                cache7[15:8] <= mem_data_i[15:8];
+                            end
+                            if (mem_sel_i[0] == 1'b1) begin
+                                cache7[7:0] <= mem_data_i[7:0];
+                            end
                         end
-                        if (mem_sel_i[2] == 1'b1) begin
-                            cache3[23:16] <= mem_data_i[23:16];
-                        end
-                        if (mem_sel_i[1] == 1'b1) begin
-                            cache3[15:8] <= mem_data_i[15:8];
-                        end
-                        if (mem_sel_i[0] == 1'b1) begin
-                            cache3[7:0] <= mem_data_i[7:0];
-                        end	
                     end
                 endcase
                 ready <= 1'b1;
@@ -196,39 +304,71 @@ module cache(
 
     always @ (posedge clk) begin
         if (rst == `RstEnable) begin
-            write_buffer <= 65'b0;
+            write_buffer <= `CacheNOP;
             cache0 <= `CacheNOP;
             cache1 <= `CacheNOP;
             cache2 <= `CacheNOP;
             cache3 <= `CacheNOP;
+            cache4 <= `CacheNOP;
+            cache5 <= `CacheNOP;
+            cache6 <= `CacheNOP;
+            cache7 <= `CacheNOP;
+            LRU_set0 <= `LeftRep;
+            LRU_set1 <= `LeftRep;
+            LRU_set2 <= `LeftRep;
+            LRU_set3 <= `LeftRep;
         end else if (ready == 1'b0 && ram_data_ready == 1'b1) begin
             case (set_select)
                 2'b00: begin
-                    if (cache0[`ValidBit] == 1'b1) begin
-                        write_buffer <= cache0[62:0];
-                    end else begin
+                    if (LRU_set0 == `LeftRep) begin
+                        if (cache0[`ValidBit] == 1'b1) begin
+                            write_buffer <= cache0[62:0];
+                        end
                         cache0 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
+                    end else begin
+                        if (cache4[`ValidBit] == 1'b1) begin
+                            write_buffer <= cache4[62:0];
+                        end
+                        cache4 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
                     end
                 end
                 2'b01: begin
-                    if (cache1[`ValidBit] == 1'b1) begin
-                        write_buffer <= cache1[62:0];
-                    end else begin
+                    if (LRU_set1 == `LeftRep) begin
+                        if (cache1[`ValidBit] == 1'b1) begin
+                            write_buffer <= cache1[62:0];
+                        end
                         cache1 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
+                    end else begin
+                        if (cache5[`ValidBit] == 1'b1) begin
+                            write_buffer <= cache5[62:0];
+                        end
+                        cache5 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
                     end
                 end
                 2'b10: begin
-                    if (cache2[`ValidBit] == 1'b1) begin
-                        write_buffer <= cache2[62:0];
-                    end else begin
+                    if (LRU_set2 == `LeftRep) begin
+                        if (cache2[`ValidBit] == 1'b1) begin
+                            write_buffer <= cache2[62:0];
+                        end
                         cache2 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
+                    end else begin
+                        if (cache6[`ValidBit] == 1'b1) begin
+                            write_buffer <= cache6[62:0];
+                        end
+                        cache6 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
                     end
                 end
                 2'b11: begin
-                   if (cache3[`ValidBit] == 1'b1) begin
-                        write_buffer <= cache3[62:0];
-                    end else begin
+                   if (LRU_set3 == `LeftRep) begin
+                        if (cache3[`ValidBit] == 1'b1) begin
+                            write_buffer <= cache3[62:0];
+                        end
                         cache3 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
+                    end else begin
+                        if (cache7[`ValidBit] == 1'b1) begin
+                            write_buffer <= cache7[62:0];
+                        end
+                        cache7 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
                     end
                 end
             endcase
