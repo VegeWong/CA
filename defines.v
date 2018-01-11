@@ -140,7 +140,7 @@
 
 
 //==================      cache related     ==================
-`define ValidBit    64
+`define ValidBit    62
 `define Valid       1'b1
 `define Invalid     1'b0
 //`define LRUBit      64
@@ -148,6 +148,7 @@
 //`define RightRep    1'b1
 `define Hit         1'b1
 `define NotHit      1'b0
-`define CacheNOP    64'b0
-`define CacheTag    63:32
+`define CacheNOP    62'b0
+`define CacheTag    61:32
 `define DataStorage 31:0
+`define DataAddrTagBit 31:2

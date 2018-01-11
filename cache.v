@@ -33,10 +33,10 @@ module cache(
 );
     
     wire set_select;
-    reg[64:0] cache0, cache1, cache2, cache3;
+    reg[62:0] cache0, cache1, cache2, cache3;
     reg hit;
     reg ready;
-    reg[64:0] write_buffer;
+    reg[62:0] write_buffer;
 
     assign set_select = mem_addr_i[3:2];
 
@@ -47,19 +47,19 @@ module cache(
             case (set_select)
                 2'b00: begin
                     hit <= (cache0[`ValidBit] == `Valid &&
-                            cache0[`CacheTag] == mem_addr_i);
+                            cache0[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
                 end
                 2'b01: begin
                     hit <= (cache1[`ValidBit] == `Valid &&
-                            cache1[`CacheTag] == mem_addr_i);
+                            cache1[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
                 end
                 2'b10: begin
                     hit <= (cache2[`ValidBit] == `Valid &&
-                            cache2[`CacheTag] == mem_addr_i);
+                            cache2[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
                 end
                 2'b11: begin
                     hit <= (cache3[`ValidBit] == `Valid &&
-                            cache3[`CacheTag] == mem_addr_i);
+                            cache3[`CacheTag] == mem_addr_i[`DataAddrTagBit]);
                 end
             endcase
             $display("Hit = %b", hit);
@@ -85,7 +85,7 @@ module cache(
                 ram_ce_o <= `ChipDisable;
                 ready <= 1'b1;
             end else begin
-                ram_addr_o <= write_buffer[63:32];
+                ram_addr_o <= {write_buffer[`CacheTag], 2'b0};
                 ram_we_o <= `WriteEnable;
                 ram_sel_o <= 4'b1111;
                 ram_data_o <= write_buffer[`DataStorage];
@@ -94,7 +94,7 @@ module cache(
                 $display("spare time writing");
             end
         end else if (hit == 1'b0) begin
-                $display("Not Hit, visiting ram, mem_addr_i = %h, mem_addr_i = %h",mem_addr_i, mem_data_i);
+                $display("Not Hit, visiting ram, mem_addr_i = %h, mem_data_i = %h",mem_addr_i, mem_data_i);
                 ram_addr_o <= mem_addr_i;
                 ram_we_o <= `WriteDisable;
                 ram_sel_o <= 4'b1;
@@ -197,30 +197,30 @@ module cache(
             case (set_select)
                 2'b00: begin
                     if (cache0[`ValidBit] == 1'b1) begin
-                        write_buffer <= cache0[64:0];
+                        write_buffer <= cache0[62:0];
                     end else begin
-                        cache0 <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
+                        cache0 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
                     end
                 end
                 2'b01: begin
                     if (cache1[`ValidBit] == 1'b1) begin
-                        write_buffer <= cache1[64:0];
+                        write_buffer <= cache1[62:0];
                     end else begin
-                        cache1 <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
+                        cache1 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
                     end
                 end
                 2'b10: begin
                     if (cache2[`ValidBit] == 1'b1) begin
-                        write_buffer <= cache2[64:0];
+                        write_buffer <= cache2[62:0];
                     end else begin
-                        cache2 <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
+                        cache2 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
                     end
                 end
                 2'b11: begin
                    if (cache3[`ValidBit] == 1'b1) begin
-                        write_buffer <= cache3[64:0];
+                        write_buffer <= cache3[62:0];
                     end else begin
-                        cache3 <= {1'b1, mem_addr_i[31:0], ram_data_i[31:0]};
+                        cache3 <= {1'b1, mem_addr_i[`DataAddrTagBit], ram_data_i[31:0]};
                     end
                 end
             endcase
